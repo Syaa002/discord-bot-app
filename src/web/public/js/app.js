@@ -13,6 +13,9 @@ let autoRoleState = {
   delaySeconds: 0
 };
 
+// State Reaction Role Button Builder
+let currentRrButtons = [];
+
 // Tampilkan Toast Notifikasi
 function showToast(message, isError = false) {
   const toast = document.getElementById('toast');
@@ -112,8 +115,23 @@ async function loadGuildDetails(guildId) {
 
     populateSelect('modLogChannelSelect', textChannels, config.modLogChannel, 'Pilih saluran log...');
     populateSelect('ytAlertChannelSelect', textChannels, null, 'Pilih saluran Discord...');
+    populateSelect('tiktokAlertChannelSelect', textChannels, null, 'Pilih saluran Discord...');
     populateSelect('voiceJoinChannelSelect', voiceChannels, config.joinToCreateChannel, 'Pilih saluran suara...');
+    populateSelect('voiceInterfaceChannelSelect', textChannels, config.voiceInterfaceChannel, 'Pilih saluran teks (misal: #interface)...');
     populateSelect('ticketCategorySelect', categories, config.ticketCategory, 'Pilih kategori tiket...');
+    populateSelect('rrChannelSelect', textChannels, null, 'Pilih saluran tujuan...');
+
+    // Status Voice Interface
+    const voiceStatusElem = document.getElementById('voiceInterfaceStatus');
+    if (voiceStatusElem) {
+      if (config.voiceInterfaceChannel) {
+        const viName = textChannels.find(c => c.id === config.voiceInterfaceChannel)?.name || config.voiceInterfaceChannel;
+        voiceStatusElem.style.display = 'block';
+        voiceStatusElem.innerHTML = `✅ Terakhir disematkan ke saluran: <strong>#${viName}</strong> (Msg ID: <code>${config.voiceInterfaceMessageId || '-'}</code>)`;
+      } else {
+        voiceStatusElem.style.display = 'none';
+      }
+    }
 
     // Isi Pengaturan Dasar Server
     document.getElementById('guildPrefixInput').value = config.prefix || '!';
@@ -124,8 +142,9 @@ async function loadGuildDetails(guildId) {
     document.getElementById('toggleMassMention').checked = autoMod.antiMassMention !== false;
     document.getElementById('toggleInvite').checked = autoMod.antiInvite !== false;
 
-    // Render Tabel YouTube Feeds
+    // Render Tabel YouTube & TikTok Feeds
     renderYtFeeds(config.trackedFeeds?.youtube || [], channels);
+    renderTiktokFeeds(config.trackedFeeds?.tiktok || [], channels);
 
     // ===================================================================
     // INITIALIZE ADVANCED AUTO-ROLE SYSTEM
@@ -142,9 +161,17 @@ async function loadGuildDetails(guildId) {
     // Isi Dropdown Pilih Role untuk Ditambahkan
     populateRoleAddSelect('selectAddUserRole', roles);
     populateRoleAddSelect('selectAddBotRole', roles);
+    populateRoleAddSelect('rrRolePickerSelect', roles);
 
-    // Render Chips Role yang Sedang Aktif
+    // Render Chips Auto-Role
     renderAutoRoleChips();
+
+    // ===================================================================
+    // INITIALIZE REACTION ROLE PANELS
+    // ===================================================================
+    currentRrButtons = [];
+    renderRrButtonsPreview();
+    renderReactionRolePanels(config.reactionRoles || {}, channels);
 
     // Render Giveaway
     const gwContainer = document.getElementById('giveawayListContainer');
@@ -186,7 +213,7 @@ function populateSelect(elemId, items, selectedVal, defaultLabel) {
 function populateRoleAddSelect(elemId, roles) {
   const elem = document.getElementById(elemId);
   if (!elem) return;
-  elem.innerHTML = '<option value="">Pilih role untuk ditambahkan...</option>';
+  elem.innerHTML = '<option value="">Pilih role...</option>';
 
   roles.forEach(r => {
     const opt = document.createElement('option');
@@ -307,6 +334,195 @@ document.getElementById('btnSaveAutoRoleConfig')?.addEventListener('click', asyn
   }
 });
 
+// ===================================================================
+// VOICE INTERFACE PANEL SENDER (SEPERTI #INTERFACE)
+// ===================================================================
+document.getElementById('btnSendVoiceInterface')?.addEventListener('click', async () => {
+  if (!currentGuildId) return;
+  const channelId = document.getElementById('voiceInterfaceChannelSelect').value;
+  if (!channelId) return showToast('Pilih saluran teks tujuan terlebih dahulu!', true);
+
+  try {
+    showToast('Sedang mengirim panel 18 tombol ke Discord...');
+    const res = await fetch(`/api/guild/${currentGuildId}/voice/send-interface`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channelId })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message);
+      loadGuildDetails(currentGuildId);
+    } else {
+      showToast(json.error || 'Gagal mengirim panel interface.', true);
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan jaringan saat mengirim panel.', true);
+  }
+});
+
+// ===================================================================
+// REACTION ROLE SYSTEM
+// ===================================================================
+
+// Auto-fill label ketika role dipilih
+document.getElementById('rrRolePickerSelect')?.addEventListener('change', (e) => {
+  const roleId = e.target.value;
+  const labelInput = document.getElementById('rrButtonLabelInput');
+  if (roleId && (!labelInput.value || labelInput.value.trim() === '')) {
+    const r = currentGuildData?.roles?.find(item => item.id === roleId);
+    if (r) labelInput.value = r.name;
+  }
+});
+
+// Tambah tombol ke daftar panel builder
+document.getElementById('btnAddButtonToRr')?.addEventListener('click', () => {
+  const roleSelect = document.getElementById('rrRolePickerSelect');
+  const roleId = roleSelect.value;
+  const labelInput = document.getElementById('rrButtonLabelInput');
+  const label = labelInput.value.trim();
+  const style = document.getElementById('rrButtonStyleSelect').value;
+  const emoji = document.getElementById('rrButtonEmojiInput').value.trim();
+
+  if (!roleId) return showToast('Pilih role terlebih dahulu!', true);
+  if (!label) return showToast('Label tombol tidak boleh kosong!', true);
+
+  if (currentRrButtons.some(b => b.roleId === roleId)) {
+    return showToast('Role ini sudah ada di tombol panel!', true);
+  }
+
+  if (currentRrButtons.length >= 25) {
+    return showToast('Maksimal 25 tombol per panel!', true);
+  }
+
+  const roleObj = currentGuildData?.roles?.find(r => r.id === roleId);
+
+  currentRrButtons.push({
+    roleId,
+    roleName: roleObj ? roleObj.name : label,
+    label,
+    style,
+    emoji: emoji || null
+  });
+
+  renderRrButtonsPreview();
+
+  // Reset input
+  roleSelect.value = '';
+  labelInput.value = '';
+  document.getElementById('rrButtonEmojiInput').value = '';
+});
+
+// Render Preview Tombol yang dirancang
+function renderRrButtonsPreview() {
+  const container = document.getElementById('rrButtonsListContainer');
+  if (!container) return;
+
+  if (currentRrButtons.length === 0) {
+    container.innerHTML = '<span style="color: var(--zt-text-muted); font-size: 13px;">Belum ada tombol role yang ditambahkan ke panel ini.</span>';
+    return;
+  }
+
+  container.innerHTML = currentRrButtons.map((b, idx) => `
+    <div class="btn-preview-item btn-preview-${b.style}">
+      <span>${b.emoji ? b.emoji + ' ' : ''}${b.label}</span>
+      <span style="opacity: 0.7; font-size: 11px;">(@${b.roleName})</span>
+      <button type="button" class="role-chip-remove" onclick="removeRrButton(${idx})" title="Hapus tombol" style="color: #fff; margin-left: 4px;">&times;</button>
+    </div>
+  `).join('');
+}
+
+window.removeRrButton = function(index) {
+  currentRrButtons.splice(index, 1);
+  renderRrButtonsPreview();
+};
+
+// Kirim Panel Reaction Role ke Discord
+document.getElementById('btnSubmitReactionRolePanel')?.addEventListener('click', async () => {
+  if (!currentGuildId) return;
+
+  const channelId = document.getElementById('rrChannelSelect').value;
+  const title = document.getElementById('rrTitleInput').value.trim();
+  const description = document.getElementById('rrDescInput').value.trim();
+
+  if (!channelId) return showToast('Pilih saluran teks tujuan terlebih dahulu!', true);
+  if (!title) return showToast('Judul panel embed tidak boleh kosong!', true);
+  if (currentRrButtons.length === 0) return showToast('Tambahkan minimal 1 tombol role!', true);
+
+  try {
+    showToast('Sedang membuat panel Reaction Role di Discord...');
+    const res = await fetch(`/api/guild/${currentGuildId}/reactionrole`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        channelId,
+        title,
+        description,
+        buttons: currentRrButtons
+      })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message);
+      currentRrButtons = [];
+      renderRrButtonsPreview();
+      loadGuildDetails(currentGuildId);
+    } else {
+      showToast(json.error || 'Gagal mengirim panel reaction role.', true);
+    }
+  } catch {
+    showToast('Terjadi kesalahan jaringan.', true);
+  }
+});
+
+// Render Daftar Panel Reaction Role Aktif
+function renderReactionRolePanels(panelsObj, channels) {
+  const tbody = document.getElementById('rrPanelsTableBody');
+  if (!tbody) return;
+
+  const panels = Object.entries(panelsObj || {});
+  if (panels.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--zt-text-muted);">Belum ada panel reaction role yang aktif.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = panels.map(([msgId, p]) => {
+    const chName = channels.find(c => c.id === p.channelId)?.name || p.channelName || p.channelId;
+    const btnCount = p.buttons?.length || 0;
+    return `
+      <tr>
+        <td>#${chName}</td>
+        <td><strong>${p.title || 'Reaction Role'}</strong></td>
+        <td><span class="zt-badge">${btnCount} Tombol</span></td>
+        <td><code>${msgId}</code></td>
+        <td>
+          <button class="btn-logout" onclick="deleteReactionRolePanel('${msgId}')" style="padding: 4px 10px; font-size: 11px;">HAPUS</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+window.deleteReactionRolePanel = async function(messageId) {
+  if (!confirm('Hapus panel Reaction Role ini dari Discord dan database?')) return;
+  try {
+    const res = await fetch(`/api/guild/${currentGuildId}/reactionrole`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageId })
+    });
+    const json = await res.json();
+    showToast(json.message || 'Panel dihapus!');
+    loadGuildDetails(currentGuildId);
+  } catch {
+    showToast('Gagal menghapus panel.', true);
+  }
+};
+
+// ===================================================================
+// FEEDS: YOUTUBE & TIKTOK
+// ===================================================================
+
 function renderYtFeeds(feeds, channels) {
   const tbody = document.getElementById('ytFeedTableBody');
   if (feeds.length === 0) {
@@ -323,6 +539,30 @@ function renderYtFeeds(feeds, channels) {
         <td><span style="color: var(--zt-cyan); font-weight: 700;">● Aktif</span></td>
         <td>
           <button class="btn-logout" onclick="deleteYtFeed('${feed.channelId}')" style="padding: 4px 10px; font-size: 11px;">HAPUS</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderTiktokFeeds(feeds, channels) {
+  const tbody = document.getElementById('tiktokFeedTableBody');
+  if (!tbody) return;
+
+  if (feeds.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--zt-text-muted);">Belum ada feed TikTok yang dipantau.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = feeds.map(feed => {
+    const channelName = channels.find(c => c.id === feed.alertChannelId)?.name || feed.alertChannelId;
+    return `
+      <tr>
+        <td><strong>@${feed.username}</strong></td>
+        <td>#${channelName}</td>
+        <td><span style="color: var(--zt-cyan); font-weight: 700;">● Aktif</span></td>
+        <td>
+          <button class="btn-logout" onclick="deleteTiktokFeed('${feed.username}')" style="padding: 4px 10px; font-size: 11px;">HAPUS</button>
         </td>
       </tr>
     `;
@@ -444,7 +684,51 @@ window.deleteYtFeed = async function(channelId) {
   }
 };
 
-// 10. Ubah Status Presence Bot
+// 10. Tambah Feed TikTok
+document.getElementById('formAddTiktokFeed')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!currentGuildId) return;
+
+  const username = document.getElementById('tiktokUsernameInput').value.trim();
+  const alertChannelId = document.getElementById('tiktokAlertChannelSelect').value;
+
+  try {
+    const res = await fetch(`/api/guild/${currentGuildId}/feed/tiktok`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, alertChannelId })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message);
+      document.getElementById('tiktokUsernameInput').value = '';
+      loadGuildDetails(currentGuildId);
+    } else {
+      showToast(json.error || 'Gagal menambahkan TikTok.', true);
+    }
+  } catch {
+    showToast('Gagal menambahkan feed TikTok.', true);
+  }
+});
+
+// Hapus Feed TikTok
+window.deleteTiktokFeed = async function(username) {
+  if (!confirm(`Hapus pemantauan untuk akun TikTok @${username}?`)) return;
+  try {
+    const res = await fetch(`/api/guild/${currentGuildId}/feed/tiktok`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username })
+    });
+    const json = await res.json();
+    showToast(json.message || 'Feed TikTok dihapus!');
+    loadGuildDetails(currentGuildId);
+  } catch {
+    showToast('Gagal menghapus feed TikTok.', true);
+  }
+};
+
+// 11. Ubah Status Presence Bot
 document.getElementById('presenceForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const activityType = document.getElementById('presenceType').value;
@@ -463,13 +747,13 @@ document.getElementById('presenceForm')?.addEventListener('submit', async (e) =>
   }
 });
 
-// 11. Ganti Pilihan Server di Dropdown Topbar
+// 12. Ganti Pilihan Server di Dropdown Topbar
 document.getElementById('serverSelect')?.addEventListener('change', (e) => {
   currentGuildId = e.target.value;
   if (currentGuildId) loadGuildDetails(currentGuildId);
 });
 
-// 12. Logout
+// 13. Logout
 document.getElementById('btnLogout')?.addEventListener('click', async () => {
   await fetch('/api/logout', { method: 'POST' });
   window.location.href = '/login';

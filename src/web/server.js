@@ -3,7 +3,16 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const crypto = require('crypto');
+const {
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ChannelType
+} = require('discord.js');
 const db = require('../database/jsonDb');
+const { sendInterfacePanel } = require('../modules/voiceRooms');
+const { COLORS } = require('../utils/embeds');
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const SESSIONS = new Map(); // token -> { createdAt, expiresAt }
@@ -204,6 +213,12 @@ function startWebServer(client) {
               delaySeconds: parseInt(rawAutoRole?.delaySeconds, 10) || 0
             };
 
+        // Normalisasi trackedFeeds
+        const normalizedFeeds = {
+          youtube: Array.isArray(guildData.trackedFeeds?.youtube) ? guildData.trackedFeeds.youtube : [],
+          tiktok: Array.isArray(guildData.trackedFeeds?.tiktok) ? guildData.trackedFeeds.tiktok : []
+        };
+
         return sendJson(res, 200, {
           id: guild.id,
           name: guild.name,
@@ -216,7 +231,9 @@ function startWebServer(client) {
           },
           config: {
             ...guildData,
-            autoRole: normalizedAutoRole
+            autoRole: normalizedAutoRole,
+            trackedFeeds: normalizedFeeds,
+            reactionRoles: guildData.reactionRoles || {}
           }
         });
       }
@@ -236,6 +253,36 @@ function startWebServer(client) {
         });
 
         return sendJson(res, 200, { success: true, message: 'Konfigurasi Auto-Role berhasil disimpan!' });
+      }
+
+      // POST /api/guild/:id/voice/send-interface
+      if (req.method === 'POST' && pathname.match(/^\/api\/guild\/[0-9]+\/voice\/send-interface$/)) {
+        const guildId = pathname.split('/')[3];
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) return sendJson(res, 404, { error: 'Guild tidak ditemukan' });
+
+        const body = await getRequestBody(req);
+        if (!body.channelId) {
+          return sendJson(res, 400, { error: 'Saluran teks tujuan wajib dipilih.' });
+        }
+
+        const channel = guild.channels.cache.get(body.channelId);
+        if (!channel || channel.type !== ChannelType.GuildText) {
+          return sendJson(res, 400, { error: 'Saluran harus bertipe text channel (bukan voice/kategori).' });
+        }
+
+        try {
+          const sentMsg = await sendInterfacePanel(channel);
+          return sendJson(res, 200, {
+            success: true,
+            message: `Panel tombol Voice Interface berhasil dikirim ke #${channel.name}!`,
+            messageId: sentMsg.id,
+            channelId: channel.id
+          });
+        } catch (err) {
+          console.error('[Web Interface Panel] Error:', err);
+          return sendJson(res, 500, { error: 'Gagal mengirim panel ke Discord: ' + err.message });
+        }
       }
 
       // POST /api/guild/:id/config
@@ -303,6 +350,168 @@ function startWebServer(client) {
         });
 
         return sendJson(res, 200, { success: true, message: 'Feed YouTube berhasil dihapus.' });
+      }
+
+      // POST /api/guild/:id/feed/tiktok
+      if (req.method === 'POST' && pathname.match(/^\/api\/guild\/[0-9]+\/feed\/tiktok$/)) {
+        const guildId = pathname.split('/')[3];
+        const body = await getRequestBody(req);
+        const username = (body.username || '').replace(/^@/, '').trim();
+        if (!username || !body.alertChannelId) {
+          return sendJson(res, 400, { error: 'Username TikTok dan Saluran Notifikasi wajib diisi.' });
+        }
+
+        db.updateGuild(guildId, data => {
+          if (!data.trackedFeeds) data.trackedFeeds = { youtube: [], tiktok: [] };
+          if (!data.trackedFeeds.tiktok) data.trackedFeeds.tiktok = [];
+          data.trackedFeeds.tiktok = data.trackedFeeds.tiktok.filter(
+            f => (f.username || '').replace(/^@/, '').trim().toLowerCase() !== username.toLowerCase()
+          );
+          data.trackedFeeds.tiktok.push({
+            username,
+            alertChannelId: body.alertChannelId,
+            lastCount: null
+          });
+        });
+
+        return sendJson(res, 200, { success: true, message: `Pemantau TikTok @${username} berhasil ditambahkan!` });
+      }
+
+      // DELETE /api/guild/:id/feed/tiktok
+      if (req.method === 'DELETE' && pathname.match(/^\/api\/guild\/[0-9]+\/feed\/tiktok$/)) {
+        const guildId = pathname.split('/')[3];
+        const body = await getRequestBody(req);
+        const username = (body.username || '').replace(/^@/, '').trim().toLowerCase();
+
+        db.updateGuild(guildId, data => {
+          if (data.trackedFeeds?.tiktok) {
+            data.trackedFeeds.tiktok = data.trackedFeeds.tiktok.filter(
+              f => (f.username || '').replace(/^@/, '').trim().toLowerCase() !== username
+            );
+          }
+        });
+
+        return sendJson(res, 200, { success: true, message: 'Pemantau TikTok berhasil dihapus.' });
+      }
+
+      // POST /api/guild/:id/reactionrole
+      if (req.method === 'POST' && pathname.match(/^\/api\/guild\/[0-9]+\/reactionrole$/)) {
+        const guildId = pathname.split('/')[3];
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) return sendJson(res, 404, { error: 'Guild tidak ditemukan' });
+
+        const body = await getRequestBody(req);
+        const { channelId, title, description, buttons } = body;
+
+        if (!channelId || !title || !Array.isArray(buttons) || buttons.length === 0) {
+          return sendJson(res, 400, { error: 'Channel tujuan, judul panel, dan minimal 1 tombol role wajib diisi.' });
+        }
+
+        const channel = guild.channels.cache.get(channelId);
+        if (!channel || channel.type !== ChannelType.GuildText) {
+          return sendJson(res, 400, { error: 'Saluran tujuan tidak valid atau bukan text channel.' });
+        }
+
+        try {
+          const embed = new EmbedBuilder()
+            .setColor(COLORS.PRIMARY || 0xFF758F)
+            .setTitle(`🎭 ${title}`)
+            .setDescription(
+              `${description || 'Klik tombol di bawah untuk mengambil atau melepas role Anda secara otomatis.'}\n\n` +
+              buttons.map(b => {
+                const r = guild.roles.cache.get(b.roleId);
+                const roleMention = r ? `<@&${r.id}>` : (b.label || 'Role');
+                return `${b.emoji ? b.emoji + ' ' : '• '}**${b.label}** ➔ ${roleMention}`;
+              }).join('\n')
+            )
+            .setFooter({ text: 'Reaction Role System • CODE: 002' })
+            .setTimestamp();
+
+          // Action rows (maksimal 5 tombol per baris, maksimal 25 tombol)
+          const rows = [];
+          let currentRow = new ActionRowBuilder();
+
+          for (let i = 0; i < buttons.length && i < 25; i++) {
+            const b = buttons[i];
+            const btn = new ButtonBuilder()
+              .setCustomId(`rr_${b.roleId}`)
+              .setLabel(b.label || 'Role');
+
+            let btnStyle = ButtonStyle.Primary;
+            if (b.style === 'Secondary') btnStyle = ButtonStyle.Secondary;
+            else if (b.style === 'Success') btnStyle = ButtonStyle.Success;
+            else if (b.style === 'Danger') btnStyle = ButtonStyle.Danger;
+            btn.setStyle(btnStyle);
+
+            if (b.emoji) {
+              btn.setEmoji(b.emoji);
+            }
+
+            currentRow.addComponents(btn);
+            if (currentRow.components.length === 5) {
+              rows.push(currentRow);
+              currentRow = new ActionRowBuilder();
+            }
+          }
+          if (currentRow.components.length > 0) {
+            rows.push(currentRow);
+          }
+
+          const sentMsg = await channel.send({ embeds: [embed], components: rows });
+
+          db.updateGuild(guildId, data => {
+            if (!data.reactionRoles) data.reactionRoles = {};
+            data.reactionRoles[sentMsg.id] = {
+              messageId: sentMsg.id,
+              channelId: channel.id,
+              channelName: channel.name,
+              title,
+              description,
+              buttons,
+              createdAt: Date.now()
+            };
+          });
+
+          return sendJson(res, 200, {
+            success: true,
+            message: `Panel Reaction Role berhasil dikirim ke #${channel.name}!`,
+            messageId: sentMsg.id
+          });
+        } catch (err) {
+          console.error('[Reaction Role Send] Error:', err);
+          return sendJson(res, 500, { error: 'Gagal mengirim panel ke Discord: ' + err.message });
+        }
+      }
+
+      // DELETE /api/guild/:id/reactionrole
+      if (req.method === 'DELETE' && pathname.match(/^\/api\/guild\/[0-9]+\/reactionrole$/)) {
+        const guildId = pathname.split('/')[3];
+        const body = await getRequestBody(req);
+        const { messageId } = body;
+
+        const guild = client.guilds.cache.get(guildId);
+        const guildData = db.getGuild(guildId);
+        const panelInfo = guildData.reactionRoles?.[messageId];
+
+        if (guild && panelInfo) {
+          try {
+            const ch = guild.channels.cache.get(panelInfo.channelId);
+            if (ch) {
+              const msg = await ch.messages.fetch(messageId).catch(() => null);
+              if (msg) await msg.delete().catch(() => {});
+            }
+          } catch (e) {
+            // Abaikan jika pesan sudah terhapus di Discord
+          }
+        }
+
+        db.updateGuild(guildId, data => {
+          if (data.reactionRoles && data.reactionRoles[messageId]) {
+            delete data.reactionRoles[messageId];
+          }
+        });
+
+        return sendJson(res, 200, { success: true, message: 'Panel Reaction Role berhasil dihapus.' });
       }
 
       // POST /api/bot/presence

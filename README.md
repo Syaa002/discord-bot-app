@@ -60,16 +60,18 @@ Bot Discord serbaguna dengan arsitektur modular yang mendukung interaksi melalui
 
 ### 5. 🎛️ Panel & Sistem Interaktif
 * **🔊 Temporary Voice Rooms (18 Tombol Kontrol)**:
-  * Ruangan suara pribadi yang dibuat otomatis saat member bergabung ke saluran *Join to Create*.
+  * Ruangan suara pribadi yang dibuat otomatis saat member bergabung ke saluran *Join to Create* (`!voicepanel setup`).
+  * **Panel Pengendali di Saluran Teks (`#interface`)**: Sematkan 18 tombol kontrol permanen ke saluran teks seperti `#✨ | interface` via command `!voicepanel interface [#channel]` atau langsung dari Web Dashboard. Member yang berada di voice room dapat langsung mengontrol room mereka dari tombol tersebut.
   * **Pengaturan Ruangan**: `LIMIT`, `CHAT`, `NAME`, `PRIVACY`, `BITRATE`, `REGION`, `RESET`, `INFO`.
   * **Izin & Akses**: `KICK`, `TRUST`, `UNTRUST`, `BLOCK`, `UNBLOCK`, `INVITE`, `WAITING ROOM`.
   * **Kepemilikan Ruangan**: `CLAIM`, `TRANSFER`, `DELETE` *(Hanya pemilik room atau Admin yang dapat menghapus)*.
   * **Auto-Delete**: Otomatis terhapus saat room kosong (0 member).
-* **🎭 Reaction Role & Autorole**:
-  * Panel tombol interaktif bagi member untuk memilih/mengambil role sendiri.
-  * Pemberian role otomatis (*Autorole*) saat member baru bergabung dengan proteksi hierarki role.
+* **🎭 Reaction Role & Auto-Role**:
+  * **Panel Tombol Reaction Role**: Buat panel tombol interaktif via Web Dashboard atau command `!reactionrole <role> <label> <deskripsi>`. Member cukup mengklik tombol untuk mengambil/melepas role secara mandiri.
+  * **Sistem Auto-Role Tingkat Lanjut**: Pemberian role otomatis saat member baru bergabung dengan pemisah role user & bot, jeda waktu (delay), dan validasi hierarki role bot yang aman.
 * **📢 Notifikasi Upload Konten (YouTube & TikTok)**:
-  * Pemantau background otomatis yang mengirimkan notifikasi embed saat akun YouTube/TikTok meng-upload konten baru.
+  * Pemantau background otomatis yang mengirimkan notifikasi embed saat akun YouTube mengunggah video atau akun TikTok memposting video baru.
+  * Dilengkapi antarmuka manajemen di Web Dashboard untuk menambah dan menghapus pemantauan feed YouTube dan TikTok.
 * **🎫 Sistem Tiket Bantuan (5 Kategori)**:
   * Pembuatan tiket bantuan (Umum, Teknis, Laporan, Partner, Billing) dengan tombol tutup tiket dan auto-transkrip percakapan.
 * **🎉 Sistem Giveaway Interaktif**:
@@ -101,7 +103,7 @@ Bot Discord serbaguna dengan arsitektur modular yang mendukung interaksi melalui
 * **Desain Eksklusif Karakter Zero Two (*Darling in the Franxx*)**: Mengusung estetika palet warna rambut sakura pink (`#FF758F`), seragam crimson red (`#EF233C`), aksen cyan Franxx, dan badge ikonik `CODE: 002`.
 * **Ringkasan Sistem Real-Time**: Pemantauan langsung status gateway WebSocket ping, jumlah server & member, uptime, serta pengontrol status aktivitas bot (*Presence Controller*).
 * **Manajemen Auto-Mod Interaktif**: Tombol toggle untuk mengaktifkan/menonaktifkan Anti-Phishing, Anti-Mass Mention, dan Anti-Invite secara visual.
-* **Visualisasi 18 Tombol Temporary Voice**: Pengaturan saluran *Join to Create* serta pratinjau matriks 18 tombol kontrol suara.
-* **Manajemen Feed Notifikasi YouTube & TikTok**: Tambah dan hapus ID channel yang dipantau secara langsung melalui antarmuka web.
-* **Pemantau Tiket, Giveaway & Peran**: Memantau kategori tiket, melihat giveaway aktif beserta jumlah peserta, serta pengaturan Auto-Role.
-* **Pengaturan Konfigurasi Server**: Mengubah prefix dan saluran mod-log dengan mudah tanpa harus mengetik perintah teks.
+* **Visualisasi & Kontrol Temporary Voice**: Pengaturan saluran *Join to Create*, pengiriman panel 18 tombol langsung ke saluran teks seperti `#interface`, serta pratinjau matriks tombol interaktif.
+* **Manajemen Feed Notifikasi YouTube & TikTok**: Tambah dan hapus ID channel YouTube dan akun TikTok yang dipantau langsung dari dashboard.
+* **Pembuat Reaction Role & Auto-Role**: Pembuat panel Reaction Role (tombol interaktif, warna Discord, emoji) serta manajemen Auto-Role terperinci (user & bot).
+* **Pemantau Tiket, Giveaway & Server**: Memantau kategori tiket, melihat giveaway aktif beserta jumlah peserta, serta konfigurasi prefix & log moderasi.

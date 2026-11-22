@@ -11,7 +11,6 @@ const {
   UserSelectMenuBuilder
 } = require('discord.js');
 const db = require('../database/jsonDb');
-
 const { COLORS } = require('../utils/embeds');
 
 // Helper untuk membuat panel 18 tombol
@@ -47,6 +46,36 @@ function createVoiceControlRows() {
   );
 
   return [row1, row2, row3, row4];
+}
+
+// Mengirimkan Panel Interface Permanen ke Saluran Teks (seperti #interface)
+async function sendInterfacePanel(textChannel) {
+  const embed = new EmbedBuilder()
+    .setColor(COLORS.PRIMARY)
+    .setTitle('🌸 TempVoice Interface • CODE: 002')
+    .setDescription(
+      'Panel ini digunakan untuk mengatur dan mengontrol temporary voice room Anda secara langsung.\n' +
+      'Gunakan tombol-tombol di bawah ini untuk mengubah pengaturan ruangan suara Anda.\n\n' +
+      '👉 **Penting:** Pastikan Anda sedang bergabung di dalam temporary voice room Anda saat menekan tombol.'
+    )
+    .addFields(
+      { name: '👥 Limit / Chat / Name', value: 'Batas member, chat text, ganti nama', inline: true },
+      { name: '🔒 Privacy / Bitrate', value: 'Kunci/buka room, sesuaikan bitrate', inline: true },
+      { name: '📞 Kick / Trust / Block', value: 'Keluarkan, trusted, atau blokir', inline: true },
+      { name: '⏳ Waiting / Invite / Reset', value: 'Ruang tunggu, undang teman, reset default', inline: true },
+      { name: '👑 Claim / Transfer / Delete', value: 'Klaim room, serahkan owner, atau hapus room', inline: true }
+    )
+    .setFooter({ text: 'TempVoice System • Tekan tombol di bawah untuk berinteraksi' });
+
+  const rows = createVoiceControlRows();
+  const msg = await textChannel.send({ embeds: [embed], components: rows });
+
+  db.updateGuild(textChannel.guild.id, data => {
+    data.voiceInterfaceChannel = textChannel.id;
+    data.voiceInterfaceMessageId = msg.id;
+  });
+
+  return msg;
 }
 
 async function handleVoiceState(oldState, newState) {
@@ -100,19 +129,19 @@ async function handleVoiceState(oldState, newState) {
         };
       });
 
-      // Kirim panel kontrol interaktif ke dalam text chat voice room
+      // Kirim panel kontrol interaktif ke dalam text chat voice room itu sendiri (opsional)
       const embed = new EmbedBuilder()
         .setColor(COLORS.PRIMARY)
         .setTitle(`🎛️ Panel Kontrol Voice: ${voiceChannel.name}`)
         .setDescription(
-          `Selamat datang ${member}! Gunakan tombol di bawah ini untuk mengatur ruangan suara Anda.\n\n` +
+          `Selamat datang ${member}! Gunakan tombol di bawah ini atau buka channel <#${guildData.voiceInterfaceChannel || voiceChannel.id}> untuk mengatur ruangan Anda.\n\n` +
           `👑 **Pemilik**: ${member}\n` +
           `🔒 **Privacy**: Terbuka\n` +
           `👥 **Batas**: Bebas`
         )
         .setFooter({ text: 'Hanya pemilik yang dapat mengontrol channel ini.' });
 
-      await voiceChannel.send({ embeds: [embed], components: createVoiceControlRows() });
+      await voiceChannel.send({ embeds: [embed], components: createVoiceControlRows() }).catch(() => {});
     } catch (err) {
       console.error('[VoiceRooms] Gagal membuat temporary voice channel:', err);
     }
@@ -143,14 +172,28 @@ async function handleVoiceInteraction(interaction) {
   if (!customId.startsWith('vc_')) return;
 
   const guild = interaction.guild;
-  const channel = interaction.channel;
   const member = interaction.member;
-
   const guildData = db.getGuild(guild.id);
-  const roomData = guildData.temporaryVoiceRooms[channel.id];
+
+  // Resolusi Target Voice Channel:
+  // Bisa diklik dari dalam voice room itu sendiri, ATAU dari channel #interface!
+  let voiceChannel = interaction.channel;
+  let roomData = guildData.temporaryVoiceRooms[interaction.channel.id];
 
   if (!roomData) {
-    return interaction.reply({ content: '❌ Channel ini bukan merupakan temporary voice room aktif.', ephemeral: true });
+    const userVoiceId = member.voice.channelId;
+    if (!userVoiceId || !guildData.temporaryVoiceRooms[userVoiceId]) {
+      return interaction.reply({
+        content: '❌ **Anda tidak sedang berada di dalam temporary voice room!**\nSilakan bergabung ke saluran temporary voice room Anda terlebih dahulu sebelum menggunakan tombol kontrol ini.',
+        ephemeral: true
+      });
+    }
+
+    voiceChannel = guild.channels.cache.get(userVoiceId);
+    if (!voiceChannel) {
+      return interaction.reply({ content: '❌ Saluran temporary voice tidak ditemukan.', ephemeral: true });
+    }
+    roomData = guildData.temporaryVoiceRooms[userVoiceId];
   }
 
   const isOwner = roomData.ownerId === member.id;
@@ -170,9 +213,9 @@ async function handleVoiceInteraction(interaction) {
     await interaction.reply({ content: '🗑️ Menghapus ruangan...', ephemeral: true });
     try {
       db.updateGuild(guild.id, data => {
-        delete data.temporaryVoiceRooms[channel.id];
+        delete data.temporaryVoiceRooms[voiceChannel.id];
       });
-      await channel.delete('Dihapus oleh pemilik room');
+      await voiceChannel.delete('Dihapus oleh pemilik room');
     } catch (err) {
       console.error('[VoiceRooms] Gagal delete channel via button:', err);
     }
@@ -183,7 +226,7 @@ async function handleVoiceInteraction(interaction) {
   // TOMBOL CLAIM: AMBIL ALIH KEPEMILIKAN JIKA OWNER ASLI TIDAK ADA
   // ------------------------------------------------------------------
   if (customId === 'vc_claim') {
-    const currentOwnerInRoom = channel.members.has(roomData.ownerId);
+    const currentOwnerInRoom = voiceChannel.members.has(roomData.ownerId);
     if (currentOwnerInRoom && !isOwner) {
       return interaction.reply({
         content: '❌ Pemilik ruangan masih berada di dalam channel ini!',
@@ -196,10 +239,10 @@ async function handleVoiceInteraction(interaction) {
     }
 
     db.updateGuild(guild.id, data => {
-      data.temporaryVoiceRooms[channel.id].ownerId = member.id;
+      data.temporaryVoiceRooms[voiceChannel.id].ownerId = member.id;
     });
 
-    await channel.permissionOverwrites.edit(member.id, {
+    await voiceChannel.permissionOverwrites.edit(member.id, {
       ManageChannels: true,
       MoveMembers: true,
       Connect: true,
@@ -208,7 +251,7 @@ async function handleVoiceInteraction(interaction) {
 
     return interaction.reply({
       content: `👑 Selamat ${member}, Anda sekarang adalah pemilik baru ruangan ini!`,
-      ephemeral: false
+      ephemeral: true
     });
   }
 
@@ -227,11 +270,11 @@ async function handleVoiceInteraction(interaction) {
     const ownerUser = await interaction.client.users.fetch(roomData.ownerId).catch(() => null);
     const embed = new EmbedBuilder()
       .setColor(COLORS.PRIMARY)
-      .setTitle(`ℹ️ Informasi Ruangan: ${channel.name}`)
+      .setTitle(`ℹ️ Informasi Ruangan: ${voiceChannel.name}`)
       .addFields(
         { name: '👑 Pemilik', value: ownerUser ? `${ownerUser.tag} (\`${ownerUser.id}\`)` : 'Tidak diketahui', inline: true },
-        { name: '👥 Member Saat Ini', value: `${channel.members.size}/${channel.userLimit || 'Tak terbatas'}`, inline: true },
-        { name: '📶 Bitrate', value: `${channel.bitrate / 1000} kbps`, inline: true },
+        { name: '👥 Member Saat Ini', value: `${voiceChannel.members.size}/${voiceChannel.userLimit || 'Tak terbatas'}`, inline: true },
+        { name: '📶 Bitrate', value: `${voiceChannel.bitrate / 1000} kbps`, inline: true },
         { name: '⏳ Waiting Room', value: roomData.waitingRoom ? 'Aktif' : 'Non-aktif', inline: true },
         { name: '🛡️ Trusted Members', value: roomData.trusted.length > 0 ? roomData.trusted.map(id => `<@${id}>`).join(', ') : 'Tidak ada' },
         { name: '🚫 Blocked Members', value: roomData.blocked.length > 0 ? roomData.blocked.map(id => `<@${id}>`).join(', ') : 'Tidak ada' }
@@ -243,10 +286,10 @@ async function handleVoiceInteraction(interaction) {
   // PRIVACY: TOGGLE LOCK / UNLOCK
   // ------------------------------------------------------------------
   if (customId === 'vc_privacy') {
-    const isLocked = !channel.permissionsFor(guild.id).has(PermissionFlagsBits.Connect);
+    const isLocked = !voiceChannel.permissionsFor(guild.id).has(PermissionFlagsBits.Connect);
     const newAllowConnect = isLocked;
 
-    await channel.permissionOverwrites.edit(guild.id, {
+    await voiceChannel.permissionOverwrites.edit(guild.id, {
       Connect: newAllowConnect
     });
 
@@ -260,8 +303,8 @@ async function handleVoiceInteraction(interaction) {
   // CHAT: TOGGLE TEXT CHAT ACCESS
   // ------------------------------------------------------------------
   if (customId === 'vc_chat') {
-    const canSend = channel.permissionsFor(guild.id).has(PermissionFlagsBits.SendMessages);
-    await channel.permissionOverwrites.edit(guild.id, {
+    const canSend = voiceChannel.permissionsFor(guild.id).has(PermissionFlagsBits.SendMessages);
+    await voiceChannel.permissionOverwrites.edit(guild.id, {
       SendMessages: !canSend
     });
     return interaction.reply({
@@ -281,7 +324,7 @@ async function handleVoiceInteraction(interaction) {
       .setCustomId('name_input')
       .setLabel('Nama Baru Ruangan')
       .setStyle(TextInputStyle.Short)
-      .setPlaceholder(channel.name)
+      .setPlaceholder(voiceChannel.name)
       .setMaxLength(32)
       .setRequired(true);
     modal.addComponents(new ActionRowBuilder().addComponents(input));
@@ -315,7 +358,7 @@ async function handleVoiceInteraction(interaction) {
       .setTitle('Atur Kualitas Bitrate');
     const input = new TextInputBuilder()
       .setCustomId('bitrate_input')
-      .setLabel('Bitrate dalam kbps (8 - 96 kbps, server boost bisa s/d 384)')
+      .setLabel('Bitrate dalam kbps (8 - 96 kbps, boost s/d 384)')
       .setStyle(TextInputStyle.Short)
       .setPlaceholder('Misal: 64')
       .setMaxLength(3)
@@ -328,19 +371,19 @@ async function handleVoiceInteraction(interaction) {
   // RESET
   // ------------------------------------------------------------------
   if (customId === 'vc_reset') {
-    await channel.edit({
+    await voiceChannel.edit({
       name: `🔊 ${member.displayName}'s Room`,
       userLimit: 0,
       bitrate: 64000
     });
-    await channel.permissionOverwrites.set([
+    await voiceChannel.permissionOverwrites.set([
       { id: guild.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.Connect] },
       { id: member.id, allow: [PermissionFlagsBits.ManageChannels, PermissionFlagsBits.Connect, PermissionFlagsBits.Speak] }
     ]);
     db.updateGuild(guild.id, data => {
-      data.temporaryVoiceRooms[channel.id].trusted = [];
-      data.temporaryVoiceRooms[channel.id].blocked = [];
-      data.temporaryVoiceRooms[channel.id].waitingRoom = false;
+      data.temporaryVoiceRooms[voiceChannel.id].trusted = [];
+      data.temporaryVoiceRooms[voiceChannel.id].blocked = [];
+      data.temporaryVoiceRooms[voiceChannel.id].waitingRoom = false;
     });
     return interaction.reply({ content: '⚙️ Seluruh pengaturan ruangan telah direset ke default.', ephemeral: true });
   }
@@ -353,13 +396,13 @@ async function handleVoiceInteraction(interaction) {
     const newWait = !currentWait;
 
     db.updateGuild(guild.id, data => {
-      data.temporaryVoiceRooms[channel.id].waitingRoom = newWait;
+      data.temporaryVoiceRooms[voiceChannel.id].waitingRoom = newWait;
     });
 
     if (newWait) {
-      await channel.permissionOverwrites.edit(guild.id, { Speak: false });
+      await voiceChannel.permissionOverwrites.edit(guild.id, { Speak: false });
     } else {
-      await channel.permissionOverwrites.edit(guild.id, { Speak: null });
+      await voiceChannel.permissionOverwrites.edit(guild.id, { Speak: null });
     }
 
     return interaction.reply({
@@ -383,7 +426,7 @@ async function handleVoiceInteraction(interaction) {
   // INVITE
   // ------------------------------------------------------------------
   if (customId === 'vc_invite') {
-    const invite = await channel.createInvite({ maxAge: 3600, maxUses: 5 });
+    const invite = await voiceChannel.createInvite({ maxAge: 3600, maxUses: 5 });
     return interaction.reply({ content: `📞 Link undangan ke room ini (berlaku 1 jam): ${invite.url}`, ephemeral: true });
   }
 }
@@ -391,26 +434,42 @@ async function handleVoiceInteraction(interaction) {
 // Handler modal & user select voice
 async function handleVoiceModalAndSelect(interaction) {
   const guild = interaction.guild;
-  const channel = interaction.channel;
   const member = interaction.member;
+  const guildData = db.getGuild(guild.id);
+
+  // Resolusi target voice channel
+  let voiceChannel = interaction.channel;
+  let roomData = guildData.temporaryVoiceRooms[interaction.channel.id];
+
+  if (!roomData) {
+    const userVoiceId = member.voice.channelId;
+    if (userVoiceId && guildData.temporaryVoiceRooms[userVoiceId]) {
+      voiceChannel = guild.channels.cache.get(userVoiceId) || interaction.channel;
+      roomData = guildData.temporaryVoiceRooms[userVoiceId];
+    }
+  }
+
+  if (!roomData) {
+    return interaction.reply({ content: '❌ Tidak dapat menemukan temporary voice room Anda.', ephemeral: true });
+  }
 
   // 1. Modal Submit
   if (interaction.isModalSubmit()) {
     if (interaction.customId === 'vc_modal_name') {
       const newName = interaction.fields.getTextInputValue('name_input');
-      await channel.setName(newName);
+      await voiceChannel.setName(newName);
       return interaction.reply({ content: `🏷️ Nama ruangan diubah menjadi: **${newName}**`, ephemeral: true });
     }
     if (interaction.customId === 'vc_modal_limit') {
       const limitVal = parseInt(interaction.fields.getTextInputValue('limit_input'), 10) || 0;
-      await channel.setUserLimit(Math.min(99, Math.max(0, limitVal)));
+      await voiceChannel.setUserLimit(Math.min(99, Math.max(0, limitVal)));
       return interaction.reply({ content: `👥 Batas member diatur menjadi: **${limitVal === 0 ? 'Tanpa Batas' : limitVal}**`, ephemeral: true });
     }
     if (interaction.customId === 'vc_modal_bitrate') {
       const bitrateVal = parseInt(interaction.fields.getTextInputValue('bitrate_input'), 10) || 64;
       const bps = Math.min(384, Math.max(8, bitrateVal)) * 1000;
       try {
-        await channel.setBitrate(bps);
+        await voiceChannel.setBitrate(bps);
         return interaction.reply({ content: `📶 Bitrate diatur menjadi: **${bitrateVal} kbps**`, ephemeral: true });
       } catch (e) {
         return interaction.reply({ content: `❌ Bitrate terlalu tinggi untuk tier boost server ini.`, ephemeral: true });
@@ -425,7 +484,7 @@ async function handleVoiceModalAndSelect(interaction) {
     if (!targetMember) return interaction.reply({ content: 'Member tidak ditemukan.', ephemeral: true });
 
     if (interaction.customId === 'vc_userselect_kick') {
-      if (targetMember.voice.channelId === channel.id) {
+      if (targetMember.voice.channelId === voiceChannel.id) {
         await targetMember.voice.disconnect();
         return interaction.reply({ content: `📞 ${targetMember} telah dikeluarkan dari voice room.`, ephemeral: true });
       }
@@ -433,61 +492,62 @@ async function handleVoiceModalAndSelect(interaction) {
     }
 
     if (interaction.customId === 'vc_userselect_trust') {
-      await channel.permissionOverwrites.edit(targetId, { Connect: true, Speak: true });
+      await voiceChannel.permissionOverwrites.edit(targetId, { Connect: true, Speak: true });
       db.updateGuild(guild.id, data => {
-        if (!data.temporaryVoiceRooms[channel.id].trusted.includes(targetId)) {
-          data.temporaryVoiceRooms[channel.id].trusted.push(targetId);
+        if (!data.temporaryVoiceRooms[voiceChannel.id].trusted.includes(targetId)) {
+          data.temporaryVoiceRooms[voiceChannel.id].trusted.push(targetId);
         }
       });
       return interaction.reply({ content: `👤 ${targetMember} sekarang menjadi **Trusted Member** di room ini.`, ephemeral: true });
     }
 
     if (interaction.customId === 'vc_userselect_untrust') {
-      await channel.permissionOverwrites.delete(targetId);
+      await voiceChannel.permissionOverwrites.delete(targetId);
       db.updateGuild(guild.id, data => {
-        data.temporaryVoiceRooms[channel.id].trusted = data.temporaryVoiceRooms[channel.id].trusted.filter(id => id !== targetId);
+        data.temporaryVoiceRooms[voiceChannel.id].trusted = data.temporaryVoiceRooms[voiceChannel.id].trusted.filter(id => id !== targetId);
       });
       return interaction.reply({ content: `👤 Status trusted ${targetMember} telah dicabut.`, ephemeral: true });
     }
 
     if (interaction.customId === 'vc_userselect_block') {
-      await channel.permissionOverwrites.edit(targetId, { Connect: false, ViewChannel: false });
-      if (targetMember.voice.channelId === channel.id) {
+      await voiceChannel.permissionOverwrites.edit(targetId, { Connect: false, ViewChannel: false });
+      if (targetMember.voice.channelId === voiceChannel.id) {
         await targetMember.voice.disconnect();
       }
       db.updateGuild(guild.id, data => {
-        if (!data.temporaryVoiceRooms[channel.id].blocked.includes(targetId)) {
-          data.temporaryVoiceRooms[channel.id].blocked.push(targetId);
+        if (!data.temporaryVoiceRooms[voiceChannel.id].blocked.includes(targetId)) {
+          data.temporaryVoiceRooms[voiceChannel.id].blocked.push(targetId);
         }
       });
       return interaction.reply({ content: `🚫 ${targetMember} telah diblokir dari room ini.`, ephemeral: true });
     }
 
     if (interaction.customId === 'vc_userselect_unblock') {
-      await channel.permissionOverwrites.delete(targetId);
+      await voiceChannel.permissionOverwrites.delete(targetId);
       db.updateGuild(guild.id, data => {
-        data.temporaryVoiceRooms[channel.id].blocked = data.temporaryVoiceRooms[channel.id].blocked.filter(id => id !== targetId);
+        data.temporaryVoiceRooms[voiceChannel.id].blocked = data.temporaryVoiceRooms[voiceChannel.id].blocked.filter(id => id !== targetId);
       });
       return interaction.reply({ content: `🔓 Blokir terhadap ${targetMember} telah dibuka.`, ephemeral: true });
     }
 
     if (interaction.customId === 'vc_userselect_transfer') {
       db.updateGuild(guild.id, data => {
-        data.temporaryVoiceRooms[channel.id].ownerId = targetId;
+        data.temporaryVoiceRooms[voiceChannel.id].ownerId = targetId;
       });
-      await channel.permissionOverwrites.edit(targetId, {
+      await voiceChannel.permissionOverwrites.edit(targetId, {
         ManageChannels: true,
         MoveMembers: true,
         Connect: true,
         Speak: true
       });
-      return interaction.reply({ content: `👑 Kepemilikan ruangan telah diserahkan kepada ${targetMember}.`, ephemeral: false });
+      return interaction.reply({ content: `👑 Kepemilikan ruangan telah diserahkan kepada ${targetMember}.`, ephemeral: true });
     }
   }
 }
 
 module.exports = {
   createVoiceControlRows,
+  sendInterfacePanel,
   handleVoiceState,
   handleVoiceInteraction,
   handleVoiceModalAndSelect

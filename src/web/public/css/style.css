@@ -632,3 +632,22 @@ input:checked + .slider:before {
   z-index: 9999;
   display: none;
 }
+
+/* REACTION ROLE BUTTON PREVIEW */
+.btn-preview-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+.btn-preview-Primary { background: #5865F2; }
+.btn-preview-Secondary { background: #4E5058; }
+.btn-preview-Success { background: #23A55A; }
+.btn-preview-Danger { background: #F23F43; }
+
