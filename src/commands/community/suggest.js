@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { successEmbed, errorEmbed } = require('../../utils/embeds');
+const { successEmbed, errorEmbed, applyBanner } = require('../../utils/embeds');
 
 module.exports = {
   name: 'suggest',
@@ -28,6 +28,8 @@ module.exports = {
       .setFooter({ text: 'Beri reaksi 👍 untuk setuju atau 👎 jika tidak setuju.' })
       .setTimestamp();
 
+    applyBanner(embed, message.guild?.id, 'community');
+
     const msg = await suggestChannel.send({ embeds: [embed] });
     await msg.react('👍');
     await msg.react('👎');
@@ -48,6 +50,8 @@ module.exports = {
       .setDescription(idea)
       .setFooter({ text: 'Beri reaksi 👍 untuk setuju atau 👎 jika tidak setuju.' })
       .setTimestamp();
+
+    applyBanner(embed, message.guild?.id, 'community');
 
     const msg = await suggestChannel.send({ embeds: [embed] });
     await msg.react('👍');

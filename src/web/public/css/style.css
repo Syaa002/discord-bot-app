@@ -977,4 +977,144 @@ input:checked + .slider:before {
   }
 }
 
+/* ===================================================================
+   KUSTOMISASI BANNER (GLOBAL & PER-FITUR)
+   =================================================================== */
+.banner-global-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .banner-global-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.banner-preview-wrapper {
+  background: #0B0C12;
+  border: 1px solid var(--zt-border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.banner-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.banner-preview-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--zt-pink-soft);
+}
+
+.banner-preview-box {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 240px;
+  background: #141622;
+  border: 2px dashed rgba(255, 117, 143, 0.35);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.banner-preview-box:hover {
+  border-color: var(--zt-pink);
+  box-shadow: 0 0 15px rgba(255, 117, 143, 0.2);
+}
+
+.banner-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.banner-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.file-upload-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.file-input-hidden {
+  position: absolute;
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.btn-file-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #1C1F2E;
+  border: 1px solid var(--zt-border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--zt-text-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: fit-content;
+}
+
+.btn-file-select:hover {
+  background: var(--zt-bg-card-hover);
+  border-color: var(--zt-pink);
+  color: var(--zt-pink);
+}
+
+.feature-banners-table-wrapper {
+  overflow-x: auto;
+}
+
+.banner-thumb-box {
+  width: 80px;
+  height: 45px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #10121C;
+  border: 1px solid var(--zt-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.banner-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.feature-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 

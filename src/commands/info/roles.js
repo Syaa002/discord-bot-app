@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { applyBanner } = require('../../utils/embeds');
 
 module.exports = {
   name: 'roles',
@@ -26,6 +27,8 @@ module.exports = {
       .setDescription(roles.length > 30 ? `${text}\n*...dan ${roles.length - 30} role lainnya.*` : text)
       .setTimestamp();
 
+    applyBanner(embed, message.guild?.id, 'serverinfo');
+
     return message.reply({ embeds: [embed] });
   },
 
@@ -42,6 +45,8 @@ module.exports = {
       .setTitle(`🎭 Daftar Role Server (${roles.length})`)
       .setDescription(roles.length > 30 ? `${text}\n*...dan ${roles.length - 30} role lainnya.*` : text)
       .setTimestamp();
+
+    applyBanner(embed, interaction.guild?.id, 'serverinfo');
 
     return interaction.reply({ embeds: [embed] });
   }

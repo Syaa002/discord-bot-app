@@ -230,6 +230,11 @@ async function loadGuildDetails(guildId) {
     // ===================================================================
     renderGiveaways(config.activeGiveaways || {}, channels);
 
+    // ===================================================================
+    // KUSTOMISASI BANNER (GLOBAL & PER-FITUR)
+    // ===================================================================
+    renderBanners(config.banners || {});
+
   } catch (err) {
     console.error('Error loading guild details:', err);
   }
@@ -976,6 +981,292 @@ document.getElementById('btnSaveTicketConfig')?.addEventListener('click', async 
     showToast('Gagal menyimpan konfigurasi tiket.', true);
   }
 });
+
+// ===================================================================
+// KUSTOMISASI BANNER (GLOBAL & PER-FITUR)
+// ===================================================================
+const BANNER_FEATURES = [
+  { key: 'help', name: '📖 Menu Help & Panduan', desc: 'Embed !help & slash /help' },
+  { key: 'voice', name: '🔊 Temporary Voice Rooms', desc: 'Panel kontrol room (18 tombol) & room chat' },
+  { key: 'ticket', name: '🎫 Sistem Tiket Bantuan', desc: 'Panel pembuka tiket & welcome embed channel tiket' },
+  { key: 'giveaway', name: '🎉 Giveaway Interaktif', desc: 'Embed mulai giveaway & pengumuman pemenang' },
+  { key: 'reactionrole', name: '🎭 Reaction Role / Button Role', desc: 'Panel tombol pemilihan role otomatis' },
+  { key: 'welcome', name: '🌸 Sambutan Member (Welcome)', desc: 'Pesan sambutan member baru di server' },
+  { key: 'feeds', name: '📡 Feeds YouTube & TikTok', desc: 'Notifikasi video/postingan baru' },
+  { key: 'serverinfo', name: '🏰 Info Server, User & Saluran', desc: 'Perintah !serverinfo, !userinfo, !roles, !channels' },
+  { key: 'community', name: '🧰 Komunitas (Poll, Suggest)', desc: 'Perintah !poll, !suggest, !quote' },
+  { key: 'mod', name: '🛡️ Moderasi & Log Audit', desc: 'Perintah !report, !auditlog, dan log channel' }
+];
+
+let currentBannersState = {};
+
+function renderBanners(banners = {}) {
+  currentBannersState = banners;
+  const defaultUrl = banners.default || '';
+
+  // 1. Default Banner UI
+  const urlInput = document.getElementById('defaultBannerUrlInput');
+  const fileInput = document.getElementById('defaultBannerFileInput');
+  const fileNameText = document.getElementById('defaultBannerFileName');
+  const imgElem = document.getElementById('defaultBannerImg');
+  const placeholder = document.getElementById('defaultBannerPlaceholder');
+  const badge = document.getElementById('defaultBannerStatusBadge');
+
+  if (urlInput) urlInput.value = defaultUrl;
+  if (fileInput) fileInput.value = '';
+  if (fileNameText) fileNameText.innerText = 'Pilih File Banner...';
+
+  if (defaultUrl) {
+    if (imgElem) {
+      imgElem.src = defaultUrl;
+      imgElem.style.display = 'block';
+    }
+    if (placeholder) placeholder.style.display = 'none';
+    if (badge) {
+      badge.innerText = 'Aktif (Global)';
+      badge.style.background = 'rgba(0, 245, 212, 0.15)';
+      badge.style.color = 'var(--zt-cyan)';
+    }
+  } else {
+    if (imgElem) {
+      imgElem.src = '';
+      imgElem.style.display = 'none';
+    }
+    if (placeholder) placeholder.style.display = 'flex';
+    if (badge) {
+      badge.innerText = 'Belum Diatur';
+      badge.style.background = 'rgba(255, 117, 143, 0.15)';
+      badge.style.color = 'var(--zt-pink)';
+    }
+  }
+
+  // 2. Feature Banners Table
+  const tbody = document.getElementById('featureBannersTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+  BANNER_FEATURES.forEach(f => {
+    const customUrl = banners[f.key] || '';
+    const hasCustom = Boolean(customUrl);
+    const activeUrl = customUrl || defaultUrl;
+
+    const tr = document.createElement('tr');
+
+    const tdFeature = document.createElement('td');
+    tdFeature.innerHTML = `<strong>${f.name}</strong><br><span style="font-size: 11px; color: var(--zt-text-muted);">${f.desc}</span>`;
+
+    const tdStatus = document.createElement('td');
+    tdStatus.innerHTML = hasCustom
+      ? `<span class="zt-badge" style="background: rgba(0, 245, 212, 0.15); color: var(--zt-cyan);">Khusus</span>`
+      : `<span class="zt-badge" style="background: rgba(255, 255, 255, 0.08); color: var(--zt-text-muted);">Default</span>`;
+
+    const tdPreview = document.createElement('td');
+    if (activeUrl) {
+      tdPreview.innerHTML = `
+        <div class="banner-thumb-box" title="Klik untuk membuka banner ukuran penuh" onclick="window.open('${activeUrl}', '_blank')">
+          <img src="${activeUrl}" class="banner-thumb-img" alt="${f.name}">
+        </div>
+      `;
+    } else {
+      tdPreview.innerHTML = `
+        <div class="banner-thumb-box" style="font-size: 10px; color: var(--zt-text-muted);">
+          Kosong
+        </div>
+      `;
+    }
+
+    const tdInput = document.createElement('td');
+    tdInput.innerHTML = `
+      <div class="feature-input-row">
+        <input type="url" id="banner_url_${f.key}" class="form-input" style="font-size: 12px; padding: 6px 10px;" placeholder="URL Gambar/GIF..." value="${customUrl}">
+        <label for="banner_file_${f.key}" class="btn-file-select" style="padding: 6px 10px; font-size: 12px;" title="Unggah file lokal">
+          <span>📁</span>
+        </label>
+        <input type="file" id="banner_file_${f.key}" accept=".png,.jpg,.jpeg,.gif,.webp" class="file-input-hidden" onchange="handleFeatureFileChange('${f.key}')">
+        <span id="banner_filename_${f.key}" style="font-size: 11px; color: var(--zt-pink); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
+      </div>
+    `;
+
+    const tdAction = document.createElement('td');
+    tdAction.style.textAlign = 'center';
+    tdAction.innerHTML = `
+      <div style="display: flex; gap: 6px; justify-content: center;">
+        <button class="btn-zt-primary" style="padding: 6px 12px; font-size: 12px; width: auto;" onclick="saveFeatureBanner('${f.key}')">Simpan</button>
+        ${hasCustom ? `<button class="btn-logout" style="padding: 6px 10px; font-size: 12px; border-radius: 6px;" onclick="deleteFeatureBanner('${f.key}')" title="Reset ke Default">Reset</button>` : ''}
+      </div>
+    `;
+
+    tr.appendChild(tdFeature);
+    tr.appendChild(tdStatus);
+    tr.appendChild(tdPreview);
+    tr.appendChild(tdInput);
+    tr.appendChild(tdAction);
+    tbody.appendChild(tr);
+  });
+}
+
+// Event preview saat file default banner dipilih
+document.getElementById('defaultBannerFileInput')?.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    document.getElementById('defaultBannerFileName').innerText = file.name;
+    const objectUrl = URL.createObjectURL(file);
+    const imgElem = document.getElementById('defaultBannerImg');
+    const placeholder = document.getElementById('defaultBannerPlaceholder');
+    if (imgElem) {
+      imgElem.src = objectUrl;
+      imgElem.style.display = 'block';
+    }
+    if (placeholder) placeholder.style.display = 'none';
+  }
+});
+
+// Event preview saat URL default banner diketik
+document.getElementById('defaultBannerUrlInput')?.addEventListener('input', (e) => {
+  const urlVal = e.target.value.trim();
+  const imgElem = document.getElementById('defaultBannerImg');
+  const placeholder = document.getElementById('defaultBannerPlaceholder');
+  if (urlVal && (urlVal.startsWith('http://') || urlVal.startsWith('https://'))) {
+    if (imgElem) {
+      imgElem.src = urlVal;
+      imgElem.style.display = 'block';
+    }
+    if (placeholder) placeholder.style.display = 'none';
+  }
+});
+
+// Simpan Default Banner
+document.getElementById('btnSaveDefaultBanner')?.addEventListener('click', async () => {
+  if (!currentGuildId) return showToast('Pilih server terlebih dahulu!', true);
+
+  const fileInput = document.getElementById('defaultBannerFileInput');
+  const urlInput = document.getElementById('defaultBannerUrlInput');
+  const file = fileInput?.files?.[0];
+  const urlVal = urlInput?.value?.trim();
+
+  try {
+    let res;
+    if (file) {
+      const formData = new FormData();
+      formData.append('key', 'default');
+      formData.append('bannerFile', file);
+      res = await fetch(`/api/guild/${currentGuildId}/banners`, {
+        method: 'POST',
+        body: formData
+      });
+    } else if (urlVal) {
+      res = await fetch(`/api/guild/${currentGuildId}/banners`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'default', url: urlVal })
+      });
+    } else {
+      return showToast('Masukkan URL gambar/GIF atau pilih file untuk diunggah.', true);
+    }
+
+    const data = await res.json();
+    if (data.success) {
+      showToast(data.message || 'Banner default server berhasil disimpan!');
+      await loadGuildDetails(currentGuildId);
+    } else {
+      showToast(data.error || 'Gagal menyimpan banner.', true);
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan saat menyimpan banner.', true);
+  }
+});
+
+// Hapus Default Banner
+document.getElementById('btnDeleteDefaultBanner')?.addEventListener('click', async () => {
+  if (!currentGuildId) return showToast('Pilih server terlebih dahulu!', true);
+
+  if (!confirm('Apakah Anda yakin ingin menghapus banner default server?')) return;
+
+  try {
+    const res = await fetch(`/api/guild/${currentGuildId}/banners/default`, {
+      method: 'DELETE'
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(data.message || 'Banner default server berhasil dihapus.');
+      await loadGuildDetails(currentGuildId);
+    } else {
+      showToast(data.error || 'Gagal menghapus banner.', true);
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan saat menghapus banner.', true);
+  }
+});
+
+// Helper untuk feature file change
+window.handleFeatureFileChange = function(featureKey) {
+  const fileInput = document.getElementById(`banner_file_${featureKey}`);
+  const nameElem = document.getElementById(`banner_filename_${featureKey}`);
+  if (fileInput?.files?.[0] && nameElem) {
+    nameElem.innerText = fileInput.files[0].name;
+  }
+};
+
+// Simpan Feature Banner
+window.saveFeatureBanner = async function(featureKey) {
+  if (!currentGuildId) return showToast('Pilih server terlebih dahulu!', true);
+
+  const fileInput = document.getElementById(`banner_file_${featureKey}`);
+  const urlInput = document.getElementById(`banner_url_${featureKey}`);
+  const file = fileInput?.files?.[0];
+  const urlVal = urlInput?.value?.trim();
+
+  try {
+    let res;
+    if (file) {
+      const formData = new FormData();
+      formData.append('key', featureKey);
+      formData.append('bannerFile', file);
+      res = await fetch(`/api/guild/${currentGuildId}/banners`, {
+        method: 'POST',
+        body: formData
+      });
+    } else if (urlVal) {
+      res = await fetch(`/api/guild/${currentGuildId}/banners`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: featureKey, url: urlVal })
+      });
+    } else {
+      return showToast('Masukkan URL banner atau pilih file untuk diunggah.', true);
+    }
+
+    const data = await res.json();
+    if (data.success) {
+      showToast(data.message || 'Banner fitur berhasil disimpan!');
+      await loadGuildDetails(currentGuildId);
+    } else {
+      showToast(data.error || 'Gagal menyimpan banner.', true);
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan saat menyimpan banner fitur.', true);
+  }
+};
+
+// Hapus Feature Banner (Reset ke Default)
+window.deleteFeatureBanner = async function(featureKey) {
+  if (!currentGuildId) return showToast('Pilih server terlebih dahulu!', true);
+
+  try {
+    const res = await fetch(`/api/guild/${currentGuildId}/banners/${featureKey}`, {
+      method: 'DELETE'
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(data.message || 'Banner fitur telah di-reset ke default.');
+      await loadGuildDetails(currentGuildId);
+    } else {
+      showToast(data.error || 'Gagal mereset banner fitur.', true);
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan saat mereset banner fitur.', true);
+  }
+};
 
 // Presence Controller
 document.getElementById('presenceForm')?.addEventListener('submit', async (e) => {

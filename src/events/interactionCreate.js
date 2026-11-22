@@ -2,7 +2,7 @@ const { EmbedBuilder } = require('discord.js');
 const { handleVoiceInteraction, handleVoiceModalAndSelect } = require('../modules/voiceRooms');
 const { handleTicketInteraction } = require('../modules/tickets');
 const { handleGiveawayInteraction } = require('../modules/giveaways');
-const { errorEmbed, successEmbed, COLORS } = require('../utils/embeds');
+const { errorEmbed, successEmbed, COLORS, applyBanner } = require('../utils/embeds');
 
 module.exports = {
   name: 'interactionCreate',
@@ -117,6 +117,7 @@ module.exports = {
           );
       }
 
+      applyBanner(embed, interaction.guild.id, 'help');
       return interaction.update({ embeds: [embed] });
     }
 

@@ -1,7 +1,7 @@
 const { EmbedBuilder } = require('discord.js');
 const db = require('../database/jsonDb');
 
-const { COLORS } = require('../utils/embeds');
+const { COLORS, applyBanner } = require('../utils/embeds');
 
 async function sendLog(guild, { category, title, description, fields = [], color = COLORS.PRIMARY, author = null }) {
   try {
@@ -24,6 +24,8 @@ async function sendLog(guild, { category, title, description, fields = [], color
     if (fields.length > 0) {
       embed.addFields(fields);
     }
+
+    applyBanner(embed, guild.id, 'mod');
 
     await channel.send({ embeds: [embed] });
   } catch (err) {

@@ -1,5 +1,5 @@
 const { PermissionFlagsBits, SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { errorEmbed } = require('../../utils/embeds');
+const { errorEmbed, applyBanner } = require('../../utils/embeds');
 
 module.exports = {
   name: 'auditlog',
@@ -30,6 +30,8 @@ module.exports = {
         });
       });
 
+      applyBanner(embed, message.guild.id, 'mod');
+
       return message.reply({ embeds: [embed] });
     } catch (err) {
       return message.reply({ embeds: [errorEmbed('Error', 'Gagal mengambil data audit log.')] });
@@ -52,6 +54,8 @@ module.exports = {
           value: `**Pelaku**: ${executor}\n**Target**: ${target}\n**Waktu**: <t:${Math.floor(entry.createdTimestamp / 1000)}:R>`
         });
       });
+
+      applyBanner(embed, interaction.guild.id, 'mod');
 
       return interaction.reply({ embeds: [embed] });
     } catch (err) {

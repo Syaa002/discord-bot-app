@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, ChannelType } = require('discord.js');
+const { applyBanner } = require('../../utils/embeds');
 
 module.exports = {
   name: 'channels',
@@ -28,6 +29,8 @@ module.exports = {
       )
       .setTimestamp();
 
+    applyBanner(embed, message.guild?.id, 'serverinfo');
+
     return message.reply({ embeds: [embed] });
   },
 
@@ -46,6 +49,8 @@ module.exports = {
         { name: '📊 Total Saluran', value: `**${interaction.guild.channels.cache.size}** total`, inline: true }
       )
       .setTimestamp();
+
+    applyBanner(embed, interaction.guild?.id, 'serverinfo');
 
     return interaction.reply({ embeds: [embed] });
   }

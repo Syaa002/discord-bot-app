@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { errorEmbed } = require('../../utils/embeds');
+const { errorEmbed, applyBanner } = require('../../utils/embeds');
 
 module.exports = {
   name: 'quote',
@@ -32,6 +32,8 @@ module.exports = {
 
       if (targetMsg.attachments.size > 0) {
         embed.setImage(targetMsg.attachments.first().url);
+      } else {
+        applyBanner(embed, message.guild?.id, 'community');
       }
 
       return message.reply({ embeds: [embed] });
@@ -55,6 +57,8 @@ module.exports = {
 
       if (targetMsg.attachments.size > 0) {
         embed.setImage(targetMsg.attachments.first().url);
+      } else {
+        applyBanner(embed, interaction.guild?.id, 'community');
       }
 
       return interaction.reply({ embeds: [embed] });

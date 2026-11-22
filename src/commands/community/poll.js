@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { errorEmbed } = require('../../utils/embeds');
+const { errorEmbed, applyBanner } = require('../../utils/embeds');
 
 const NUMBER_EMOJIS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
 
@@ -34,6 +34,8 @@ module.exports = {
       .setFooter({ text: `Dibuat oleh ${message.author.tag}` })
       .setTimestamp();
 
+    applyBanner(embed, message.guild?.id, 'community');
+
     const pollMsg = await message.channel.send({ embeds: [embed] });
     for (let i = 0; i < options.length; i++) {
       await pollMsg.react(NUMBER_EMOJIS[i]);
@@ -55,6 +57,8 @@ module.exports = {
       .setDescription(options.map((opt, i) => `${NUMBER_EMOJIS[i]} ${opt}`).join('\n\n'))
       .setFooter({ text: `Dibuat oleh ${interaction.user.tag}` })
       .setTimestamp();
+
+    applyBanner(embed, interaction.guild?.id, 'community');
 
     const pollMsg = await interaction.reply({ embeds: [embed], fetchReply: true });
     for (let i = 0; i < options.length; i++) {

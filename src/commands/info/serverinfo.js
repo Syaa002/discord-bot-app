@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { applyBanner } = require('../../utils/embeds');
 
 module.exports = {
   name: 'serverinfo',
@@ -32,6 +33,8 @@ module.exports = {
       .setFooter({ text: `ID Server: ${guild.id}` })
       .setTimestamp();
 
+    applyBanner(embed, guild.id, 'serverinfo');
+
     return message.reply({ embeds: [embed] });
   },
 
@@ -54,6 +57,8 @@ module.exports = {
       )
       .setFooter({ text: `ID Server: ${guild.id}` })
       .setTimestamp();
+
+    applyBanner(embed, guild.id, 'serverinfo');
 
     return interaction.reply({ embeds: [embed] });
   }

@@ -14,9 +14,12 @@ const db = require('../database/jsonDb');
 const { sendInterfacePanel } = require('../modules/voiceRooms');
 const { sendTicketPanel, TRANSCRIPTS_DIR } = require('../modules/tickets');
 const { startGiveaway, endGiveaway, rerollGiveaway } = require('../modules/giveaways');
-const { COLORS } = require('../utils/embeds');
+const { COLORS, applyBanner } = require('../utils/embeds');
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
+const UPLOAD_BANNER_DIR = path.join(PUBLIC_DIR, 'uploads', 'banners');
+if (!fs.existsSync(UPLOAD_BANNER_DIR)) fs.mkdirSync(UPLOAD_BANNER_DIR, { recursive: true });
+
 const SESSIONS = new Map(); // token -> { createdAt, expiresAt }
 const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 Jam
 
@@ -28,6 +31,9 @@ const MIME_TYPES = {
   '.json': 'application/json; charset=UTF-8',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon'
 };
@@ -79,6 +85,69 @@ function getRequestBody(req) {
         resolve({});
       }
     });
+  });
+}
+
+function parseMultipart(req) {
+  return new Promise((resolve, reject) => {
+    const contentType = req.headers['content-type'] || '';
+    const boundaryMatch = contentType.match(/boundary=(?:["']?)([^"';]+)(?:["']?)/);
+    if (!boundaryMatch) return resolve({ fields: {}, files: {} });
+    const boundary = boundaryMatch[1];
+    const chunks = [];
+    let totalLength = 0;
+
+    req.on('data', chunk => {
+      chunks.push(chunk);
+      totalLength += chunk.length;
+      if (totalLength > 15 * 1024 * 1024) { // Max 15MB
+        req.connection.destroy();
+        reject(new Error('File upload too large (maksimal 15MB)'));
+      }
+    });
+
+    req.on('end', () => {
+      const buffer = Buffer.concat(chunks);
+      const boundaryBuf = Buffer.from('--' + boundary);
+      const fields = {};
+      const files = {};
+
+      let start = 0;
+      while (true) {
+        const bIndex = buffer.indexOf(boundaryBuf, start);
+        if (bIndex === -1) break;
+        const partStart = bIndex + boundaryBuf.length;
+        const nextBIndex = buffer.indexOf(boundaryBuf, partStart);
+        if (nextBIndex === -1) break;
+
+        const part = buffer.subarray(partStart, nextBIndex);
+        const headerEnd = part.indexOf('\r\n\r\n');
+        if (headerEnd !== -1) {
+          const headerStr = part.subarray(0, headerEnd).toString('utf-8');
+          let body = part.subarray(headerEnd + 4);
+          if (body.length >= 2 && body[body.length - 2] === 13 && body[body.length - 1] === 10) {
+            body = body.subarray(0, body.length - 2);
+          }
+
+          const nameMatch = headerStr.match(/name="([^"]+)"/);
+          const filenameMatch = headerStr.match(/filename="([^"]+)"/);
+          if (nameMatch) {
+            const fieldName = nameMatch[1];
+            if (filenameMatch && filenameMatch[1]) {
+              files[fieldName] = {
+                filename: filenameMatch[1],
+                data: body
+              };
+            } else {
+              fields[fieldName] = body.toString('utf-8').trim();
+            }
+          }
+        }
+        start = nextBIndex;
+      }
+      resolve({ fields, files });
+    });
+    req.on('error', reject);
   });
 }
 
@@ -253,6 +322,19 @@ function startWebServer(client) {
           },
           config: {
             ...guildData,
+            banners: guildData.banners || {
+              default: null,
+              help: null,
+              voice: null,
+              ticket: null,
+              giveaway: null,
+              reactionrole: null,
+              welcome: null,
+              feeds: null,
+              serverinfo: null,
+              community: null,
+              mod: null
+            },
             autoRole: normalizedAutoRole,
             trackedFeeds: normalizedFeeds,
             reactionRoles: guildData.reactionRoles || {},
@@ -582,6 +664,8 @@ function startWebServer(client) {
             .setFooter({ text: 'Reaction Role System • CODE: 002' })
             .setTimestamp();
 
+          applyBanner(embed, guildId, 'reactionrole');
+
           // Action rows (maksimal 5 tombol per baris, maksimal 25 tombol)
           const rows = [];
           let currentRow = new ActionRowBuilder();
@@ -667,6 +751,93 @@ function startWebServer(client) {
         });
 
         return sendJson(res, 200, { success: true, message: 'Panel Reaction Role berhasil dihapus.' });
+      }
+
+      // ===================================================================
+      // BANNERS API (GLOBAL & PER-FITUR)
+      // ===================================================================
+      const bannerMatch = pathname.match(/^\/api\/(?:guild|guilds)\/([0-9]+)\/banners(?:\/([a-zA-Z0-9_-]+))?$/);
+
+      // GET /api/guilds/:id/banners ATAU /api/guild/:id/banners
+      if (req.method === 'GET' && bannerMatch) {
+        const guildId = bannerMatch[1];
+        const guildData = db.getGuild(guildId);
+        return sendJson(res, 200, {
+          success: true,
+          banners: guildData.banners || {}
+        });
+      }
+
+      // POST /api/guilds/:id/banners ATAU /api/guild/:id/banners
+      if (req.method === 'POST' && bannerMatch && !pathname.includes('/delete')) {
+        const guildId = bannerMatch[1];
+        const contentType = req.headers['content-type'] || '';
+        let targetKey = bannerMatch[2] || 'default';
+        let bannerUrl = null;
+
+        if (contentType.includes('multipart/form-data')) {
+          const { fields, files } = await parseMultipart(req);
+          if (fields.key) targetKey = fields.key;
+
+          if (files.bannerFile && files.bannerFile.data && files.bannerFile.data.length > 0) {
+            const file = files.bannerFile;
+            let ext = path.extname(file.filename || '').toLowerCase();
+            if (!['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(ext)) {
+              ext = '.png';
+            }
+            const filename = `banner_${guildId}_${targetKey}_${Date.now()}${ext}`;
+            const diskPath = path.join(UPLOAD_BANNER_DIR, filename);
+            fs.writeFileSync(diskPath, file.data);
+
+            const protocol = req.headers['x-forwarded-proto'] || 'http';
+            const host = req.headers.host || `localhost:${PORT}`;
+            bannerUrl = `${protocol}://${host}/uploads/banners/${filename}`;
+          } else if (fields.url) {
+            bannerUrl = fields.url.trim();
+          }
+        } else {
+          const body = await getRequestBody(req);
+          if (body.key) targetKey = body.key;
+          bannerUrl = (body.url || '').trim();
+        }
+
+        if (!bannerUrl) {
+          return sendJson(res, 400, { error: 'File gambar atau URL banner wajib disediakan.' });
+        }
+
+        db.updateGuild(guildId, data => {
+          if (!data.banners) data.banners = {};
+          data.banners[targetKey] = bannerUrl;
+        });
+
+        return sendJson(res, 200, {
+          success: true,
+          key: targetKey,
+          url: bannerUrl,
+          message: 'Banner berhasil disimpan!'
+        });
+      }
+
+      // DELETE /api/guilds/:id/banners/:key ATAU DELETE /api/guild/:id/banners/:key
+      if ((req.method === 'DELETE' || req.method === 'POST') && (bannerMatch && (bannerMatch[2] || pathname.endsWith('/delete')))) {
+        const guildId = bannerMatch[1];
+        let keyToDelete = bannerMatch[2];
+
+        if (!keyToDelete || keyToDelete === 'delete') {
+          const body = await getRequestBody(req);
+          keyToDelete = body.key || 'default';
+        }
+
+        db.updateGuild(guildId, data => {
+          if (!data.banners) data.banners = {};
+          data.banners[keyToDelete] = null;
+        });
+
+        return sendJson(res, 200, {
+          success: true,
+          key: keyToDelete,
+          message: `Banner untuk ${keyToDelete} berhasil dihapus.`
+        });
       }
 
       // POST /api/bot/presence

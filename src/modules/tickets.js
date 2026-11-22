@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const db = require('../database/jsonDb');
 const { sendLog } = require('./logger');
-const { COLORS } = require('../utils/embeds');
+const { COLORS, applyBanner } = require('../utils/embeds');
 
 const TRANSCRIPTS_DIR = path.join(__dirname, '..', '..', 'data', 'transcripts');
 if (!fs.existsSync(TRANSCRIPTS_DIR)) fs.mkdirSync(TRANSCRIPTS_DIR, { recursive: true });
@@ -24,7 +24,7 @@ const TICKET_TYPES = [
   { label: 'Donasi & Billing', value: 'ticket_billing', description: 'Konfirmasi donasi atau urusan transaksi', emoji: '💎' }
 ];
 
-function createTicketPanelMessage() {
+function createTicketPanelMessage(guildId = null) {
   const embed = new EmbedBuilder()
     .setColor(COLORS.PRIMARY)
     .setTitle('🎫 Pusat Bantuan & Dukungan Tiket')
@@ -34,6 +34,8 @@ function createTicketPanelMessage() {
       '⏰ *Tim kami akan merespons tiket Anda secepat mungkin.*'
     )
     .setFooter({ text: 'Satu pengguna hanya disarankan membuka satu tiket per masalah.' });
+
+  if (guildId) applyBanner(embed, guildId, 'ticket');
 
   const selectMenu = new StringSelectMenuBuilder()
     .setCustomId('ticket_select_category')
@@ -45,7 +47,7 @@ function createTicketPanelMessage() {
 }
 
 async function sendTicketPanel(channel) {
-  const payload = createTicketPanelMessage();
+  const payload = createTicketPanelMessage(channel.guild.id);
   const msg = await channel.send(payload);
 
   db.updateGuild(channel.guild.id, data => {
@@ -122,6 +124,8 @@ async function handleTicketInteraction(interaction) {
         )
         .addFields({ name: 'Kategori', value: `${categoryInfo.emoji} ${categoryInfo.label}`, inline: true })
         .setTimestamp();
+
+      applyBanner(welcomeEmbed, guild.id, 'ticket');
 
       const closeRow = new ActionRowBuilder().addComponents(
         new ButtonBuilder()

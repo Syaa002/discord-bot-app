@@ -55,6 +55,11 @@
           </a>
         </li>
         <li class="sidebar-item">
+          <a class="sidebar-link" data-tab="tab-banners">
+            <span>🖼️</span> Kustomisasi Banner
+          </a>
+        </li>
+        <li class="sidebar-item">
           <a class="sidebar-link" data-tab="tab-settings">
             <span>⚙️</span> Konfigurasi Server
           </a>
@@ -746,6 +751,93 @@
                 </thead>
                 <tbody id="rrPanelsTableBody">
                   <tr><td colspan="5" style="text-align: center; color: var(--zt-text-muted);">Belum ada panel reaction role yang aktif.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: BANNERS (KUSTOMISASI BANNER) -->
+        <section id="tab-banners" class="tab-pane" style="display: none;">
+          <!-- 1. BANNER DEFAULT SERVER (GLOBAL) -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>🌐</span> Banner Default Server (Global)</h3>
+            </div>
+            <p style="font-size: 13px; color: var(--zt-text-muted); margin-bottom: 20px; line-height: 1.5;">
+              Banner utama ini otomatis disematkan pada seluruh pesan embed Discord (Temporary Voice, Tiket Bantuan, Giveaway, Reaction Role, Pesan Sambutan/Welcome, Notifikasi Feeds, Perintah Bantuan & Info Server) jika fitur tersebut tidak memiliki banner khusus sendiri.
+            </p>
+
+            <div class="banner-global-grid">
+              <!-- Live Preview Box -->
+              <div class="banner-preview-wrapper">
+                <div class="banner-preview-header">
+                  <span class="banner-preview-label">KOTAK PRATINJAU LANGSUNG (LIVE PREVIEW)</span>
+                  <span id="defaultBannerStatusBadge" class="zt-badge" style="background: rgba(255,117,143,0.15); color: var(--zt-pink);">Belum Diatur</span>
+                </div>
+                <div id="defaultBannerPreviewBox" class="banner-preview-box">
+                  <img id="defaultBannerImg" src="" alt="Default Banner Preview" class="banner-preview-img" style="display: none;">
+                  <div id="defaultBannerPlaceholder" class="banner-placeholder">
+                    <span style="font-size: 38px; margin-bottom: 8px;">🖼️</span>
+                    <strong style="color: var(--zt-text-main);">Belum ada banner default</strong>
+                    <span style="font-size: 12px; color: var(--zt-text-muted); margin-top: 4px;">Mendukung format PNG, JPG, WEBP, dan animasi GIF</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Upload / Input Form -->
+              <div class="banner-form-wrapper">
+                <div class="form-group">
+                  <label class="form-label">URL Gambar/GIF Langsung</label>
+                  <input type="url" id="defaultBannerUrlInput" class="form-input" placeholder="https://i.imgur.com/... atau https://media.giphy.com/...gif">
+                  <span style="font-size: 11px; color: var(--zt-text-muted); margin-top: 4px; display: block;">Masukkan link URL gambar/GIF yang dapat diakses publik.</span>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                  <label class="form-label">ATAU Unggah File Gambar/GIF Lokal</label>
+                  <div class="file-upload-box">
+                    <input type="file" id="defaultBannerFileInput" accept=".png,.jpg,.jpeg,.gif,.webp" class="file-input-hidden">
+                    <label for="defaultBannerFileInput" class="btn-file-select">
+                      <span>📁</span> <span id="defaultBannerFileName">Pilih File Banner...</span>
+                    </label>
+                    <span style="font-size: 11px; color: var(--zt-text-muted); margin-top: 6px; display: block;">Maksimal 15MB (.png, .jpg, .webp, .gif)</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
+                  <button id="btnSaveDefaultBanner" class="btn-zt-primary" style="width: auto; padding: 10px 22px;">
+                    💾 SIMPAN BANNER DEFAULT
+                  </button>
+                  <button id="btnDeleteDefaultBanner" class="btn-logout" style="border-radius: 8px; padding: 10px 18px;">
+                    🗑️ HAPUS BANNER
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. BANNER KHUSUS PER-FITUR (OPSIONAL / OVERRIDE) -->
+          <div class="card" style="margin-top: 24px;">
+            <div class="card-header">
+              <h3 class="card-title"><span>🎨</span> Banner Khusus Per-Fitur (Opsional / Override)</h3>
+            </div>
+            <p style="font-size: 13px; color: var(--zt-text-muted); margin-bottom: 20px; line-height: 1.5;">
+              Sesuaikan gambar atau GIF khusus untuk masing-masing fitur utama. Jika baris fitur ini dibiarkan kosong, embed fitur tersebut akan otomatis menggunakan <strong>Banner Default Server</strong> di atas.
+            </p>
+
+            <div class="feature-banners-table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width: 220px;">Fitur & Sistem</th>
+                    <th style="width: 140px;">Status</th>
+                    <th style="width: 110px;">Pratinjau</th>
+                    <th>URL Banner / Upload File</th>
+                    <th style="width: 170px; text-align: center;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="featureBannersTableBody">
+                  <!-- Baris fitur akan di-render secara dinamis oleh app.js -->
                 </tbody>
               </table>
             </div>

@@ -1,6 +1,7 @@
+const { EmbedBuilder } = require('discord.js');
 const db = require('../database/jsonDb');
 const { sendLog } = require('../modules/logger');
-const { COLORS } = require('../utils/embeds');
+const { COLORS, applyBanner } = require('../utils/embeds');
 
 function normalizeAutoRole(cfg) {
   if (!cfg) return { enabled: false, userRoles: [], botRoles: [], delaySeconds: 0 };
@@ -59,7 +60,30 @@ module.exports = {
       }
     }
 
-    // 2. Logging Member Masuk
+    // 2. Pesan Sambutan Member Baru (Welcome Message)
+    const welcomeChannelId = guildData.welcomeChannel;
+    const welcomeChannel = welcomeChannelId
+      ? guild.channels.cache.get(welcomeChannelId)
+      : guild.channels.cache.find(c => c.isTextBased() && (c.name.includes('welcome') || c.name.includes('sambutan') || c.name.includes('selamat-datang')));
+
+    if (welcomeChannel && welcomeChannel.isTextBased()) {
+      try {
+        const welcomeEmbed = new EmbedBuilder()
+          .setColor(COLORS.PRIMARY)
+          .setTitle(`🌸 Selamat Datang di ${guild.name}!`)
+          .setDescription(`Halo ${member}, selamat datang di server! Kamu adalah member ke-**${guild.memberCount}**.\nSemoga betah dan silakan cek channel yang tersedia. ✨`)
+          .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }))
+          .setFooter({ text: 'Zero Two Welcome System • CODE: 002' })
+          .setTimestamp();
+
+        applyBanner(welcomeEmbed, guild.id, 'welcome');
+        await welcomeChannel.send({ content: `Selamat datang ${member}! 🎉`, embeds: [welcomeEmbed] });
+      } catch (err) {
+        console.error('[Welcome] Gagal mengirim pesan sambutan:', err);
+      }
+    }
+
+    // 3. Logging Member Masuk
     await sendLog(guild, {
       category: 'Member',
       title: 'Member Baru Bergabung',

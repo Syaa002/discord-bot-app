@@ -4,6 +4,7 @@ const {
   EmbedBuilder,
   SlashCommandBuilder
 } = require('discord.js');
+const { applyBanner } = require('../../utils/embeds');
 
 module.exports = {
   name: 'help',
@@ -34,6 +35,8 @@ module.exports = {
         { name: '⚙️ Developer & Admin', value: 'Config, Sync, Backup, Reload, Webhook, DB Ping, dll.' }
       )
       .setFooter({ text: 'Gunakan !help <perintah> atau pilih kategori di bawah.' });
+
+    applyBanner(embed, message.guild?.id, 'help');
 
     const menu = new StringSelectMenuBuilder()
       .setCustomId('help_select_category')
@@ -66,6 +69,8 @@ module.exports = {
         { name: '🎛️ Panel & Sistem', value: 'Temporary Voice (18 Tombol), Tiket, Giveaway, Reaction Role.' },
         { name: '⚙️ Developer & Admin', value: 'Config, Sync, Backup, Reload, Webhook, DB Ping, dll.' }
       );
+
+    applyBanner(embed, interaction.guild?.id, 'help');
 
     const menu = new StringSelectMenuBuilder()
       .setCustomId('help_select_category')

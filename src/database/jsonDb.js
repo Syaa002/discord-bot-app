@@ -23,6 +23,19 @@ const defaultGuildData = () => ({
   activeGiveaways: {}, // { messageId: { prize, endsAt, winnersCount, hostId, participants: [] } }
   endedGiveaways: {}, // { messageId: { prize, endedAt, winners: [], participants: [] } }
   closedTickets: [], // [ { id, channelName, creatorTag, category, closedBy, closedAt, filename } ]
+  banners: {
+    default: null,       // Global Default Banner
+    help: null,          // Menu Help
+    voice: null,         // Temporary Voice
+    ticket: null,        // Tiket Bantuan
+    giveaway: null,      // Giveaway
+    reactionrole: null,  // Reaction Role
+    welcome: null,       // Welcome / Autorole
+    feeds: null,         // Notifikasi YouTube & TikTok
+    serverinfo: null,    // Info Server & User
+    community: null,     // Poll, Quote, Suggest
+    mod: null            // Moderasi, Report, Auditlog
+  },
   trackedFeeds: {
     youtube: [], // [ { channelId, lastVideoId, alertChannelId } ]
     tiktok: []   // [ { username, lastVideoId, alertChannelId } ]

@@ -11,7 +11,7 @@ const {
   UserSelectMenuBuilder
 } = require('discord.js');
 const db = require('../database/jsonDb');
-const { COLORS } = require('../utils/embeds');
+const { COLORS, applyBanner } = require('../utils/embeds');
 
 // Helper untuk membuat panel 18 tombol
 function createVoiceControlRows() {
@@ -66,6 +66,8 @@ async function sendInterfacePanel(textChannel) {
       { name: '👑 Claim / Transfer / Delete', value: 'Klaim room, serahkan owner, atau hapus room', inline: true }
     )
     .setFooter({ text: 'TempVoice System • Tekan tombol di bawah untuk berinteraksi' });
+
+  applyBanner(embed, textChannel.guild.id, 'voice');
 
   const rows = createVoiceControlRows();
   const msg = await textChannel.send({ embeds: [embed], components: rows });
@@ -140,6 +142,8 @@ async function handleVoiceState(oldState, newState) {
           `👥 **Batas**: Bebas`
         )
         .setFooter({ text: 'Hanya pemilik yang dapat mengontrol channel ini.' });
+
+      applyBanner(embed, guild.id, 'voice');
 
       await voiceChannel.send({ embeds: [embed], components: createVoiceControlRows() }).catch(() => {});
     } catch (err) {

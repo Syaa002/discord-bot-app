@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { applyBanner } = require('../../utils/embeds');
 
 module.exports = {
   name: 'userinfo',
@@ -32,6 +33,8 @@ module.exports = {
       )
       .setTimestamp();
 
+    applyBanner(embed, message.guild?.id, 'serverinfo');
+
     return message.reply({ embeds: [embed] });
   },
 
@@ -53,6 +56,8 @@ module.exports = {
         { name: '🎭 Role', value: roles.length > 1024 ? `${roles.substring(0, 1020)}...` : roles, inline: false }
       )
       .setTimestamp();
+
+    applyBanner(embed, interaction.guild?.id, 'serverinfo');
 
     return interaction.reply({ embeds: [embed] });
   }

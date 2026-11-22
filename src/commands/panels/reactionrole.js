@@ -7,7 +7,7 @@ const {
   SlashCommandBuilder
 } = require('discord.js');
 const db = require('../../database/jsonDb');
-const { successEmbed, errorEmbed } = require('../../utils/embeds');
+const { successEmbed, errorEmbed, applyBanner } = require('../../utils/embeds');
 
 module.exports = {
   name: 'reactionrole',
@@ -41,6 +41,8 @@ module.exports = {
       .setDescription(`${description}\n\n👉 Klik tombol di bawah untuk **mengambil** atau **melepas** role ${role}.`)
       .setTimestamp();
 
+    applyBanner(embed, message.guild.id, 'reactionrole');
+
     const button = new ButtonBuilder()
       .setCustomId(`rr_${role.id}`)
       .setLabel(label)
@@ -61,6 +63,8 @@ module.exports = {
       .setTitle(`🎭 Ambil Role: ${role.name}`)
       .setDescription(`${description}\n\n👉 Klik tombol di bawah untuk **mengambil** atau **melepas** role ${role}.`)
       .setTimestamp();
+
+    applyBanner(embed, message.guild.id, 'reactionrole');
 
     const button = new ButtonBuilder()
       .setCustomId(`rr_${role.id}`)

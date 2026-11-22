@@ -6,7 +6,7 @@ const {
 } = require('discord.js');
 const db = require('../database/jsonDb');
 const { sendLog } = require('./logger');
-const { COLORS } = require('../utils/embeds');
+const { COLORS, applyBanner } = require('../utils/embeds');
 
 function createGiveawayButtons(count = 0) {
   return new ActionRowBuilder().addComponents(
@@ -35,6 +35,8 @@ async function startGiveaway(channel, { prize, durationMs, winnersCount, hostUse
     )
     .setFooter({ text: 'Semoga beruntung!' })
     .setTimestamp(endsAt);
+
+  applyBanner(embed, channel.guild.id, 'giveaway');
 
   const row = createGiveawayButtons(0);
   const msg = await channel.send({ embeds: [embed], components: [row] });
@@ -91,6 +93,8 @@ async function endGiveaway(client, guildId, messageId) {
         `👥 **Total Peserta**: ${participants.length}`
       )
       .setTimestamp();
+
+    applyBanner(endedEmbed, guildId, 'giveaway');
 
     await msg.edit({ embeds: [endedEmbed], components: [] }).catch(() => {});
   }

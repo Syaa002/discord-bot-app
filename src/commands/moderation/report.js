@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const db = require('../../database/jsonDb');
-const { successEmbed, errorEmbed } = require('../../utils/embeds');
+const { successEmbed, errorEmbed, applyBanner } = require('../../utils/embeds');
 
 module.exports = {
   name: 'report',
@@ -45,6 +45,8 @@ module.exports = {
         )
         .setTimestamp();
 
+      applyBanner(embed, message.guild.id, 'mod');
+
       const reportMsg = await modChannel.send({ embeds: [embed] });
       await reportMsg.startThread({
         name: `Investigasi: ${targetUser.username}`,
@@ -80,6 +82,8 @@ module.exports = {
           { name: 'Detail Kejadian', value: details, inline: false }
         )
         .setTimestamp();
+
+      applyBanner(embed, message.guild.id, 'mod');
 
       const reportMsg = await modChannel.send({ embeds: [embed] });
       await reportMsg.startThread({

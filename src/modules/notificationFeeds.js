@@ -2,7 +2,7 @@ const cron = require('node-cron');
 const https = require('https');
 const { EmbedBuilder } = require('discord.js');
 const db = require('../database/jsonDb');
-const { COLORS } = require('../utils/embeds');
+const { COLORS, applyBanner } = require('../utils/embeds');
 
 // Helper fetch HTTP/HTTPS
 function fetchUrl(url, headers = {}) {
@@ -152,6 +152,8 @@ async function checkTikTokFeeds(client) {
               )
               .setFooter({ text: 'TikTok Tracker • CODE: 002' })
               .setTimestamp();
+
+            applyBanner(embed, guild.id, 'feeds');
 
             await alertChannel.send({
               content: `🔔 **Pemberitahuan TikTok Baru!**\n${profileUrl}`,
