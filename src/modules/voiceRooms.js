@@ -12,6 +12,8 @@ const {
 } = require('discord.js');
 const db = require('../database/jsonDb');
 
+const { COLORS } = require('../utils/embeds');
+
 // Helper untuk membuat panel 18 tombol
 function createVoiceControlRows() {
   const row1 = new ActionRowBuilder().addComponents(
@@ -100,7 +102,7 @@ async function handleVoiceState(oldState, newState) {
 
       // Kirim panel kontrol interaktif ke dalam text chat voice room
       const embed = new EmbedBuilder()
-        .setColor(0x5865F2)
+        .setColor(COLORS.PRIMARY)
         .setTitle(`🎛️ Panel Kontrol Voice: ${voiceChannel.name}`)
         .setDescription(
           `Selamat datang ${member}! Gunakan tombol di bawah ini untuk mengatur ruangan suara Anda.\n\n` +
@@ -224,7 +226,7 @@ async function handleVoiceInteraction(interaction) {
   if (customId === 'vc_info') {
     const ownerUser = await interaction.client.users.fetch(roomData.ownerId).catch(() => null);
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(COLORS.PRIMARY)
       .setTitle(`ℹ️ Informasi Ruangan: ${channel.name}`)
       .addFields(
         { name: '👑 Pemilik', value: ownerUser ? `${ownerUser.tag} (\`${ownerUser.id}\`)` : 'Tidak diketahui', inline: true },

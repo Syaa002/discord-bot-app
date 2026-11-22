@@ -6,6 +6,7 @@ const {
 } = require('discord.js');
 const db = require('../database/jsonDb');
 const { sendLog } = require('./logger');
+const { COLORS } = require('../utils/embeds');
 
 function createGiveawayButtons(count = 0) {
   return new ActionRowBuilder().addComponents(
@@ -24,7 +25,7 @@ function createGiveawayButtons(count = 0) {
 async function startGiveaway(channel, { prize, durationMs, winnersCount, hostUser }) {
   const endsAt = Date.now() + durationMs;
   const embed = new EmbedBuilder()
-    .setColor(0xFEE75C)
+    .setColor(COLORS.WARNING)
     .setTitle(`🎉 GIVEAWAY: ${prize}`)
     .setDescription(
       `Klik tombol **Ikut** di bawah untuk berpartisipasi!\n\n` +
@@ -78,7 +79,7 @@ async function endGiveaway(client, guildId, messageId) {
   const winnersText = winners.length > 0 ? winners.map(id => `<@${id}>`).join(', ') : 'Tidak ada peserta yang memenuhi syarat.';
 
   const endedEmbed = new EmbedBuilder()
-    .setColor(0xED4245)
+    .setColor(COLORS.ERROR)
     .setTitle(`🎉 GIVEAWAY SELESAI: ${gwData.prize}`)
     .setDescription(
       `🏆 **Pemenang**: ${winnersText}\n` +
@@ -103,7 +104,7 @@ async function endGiveaway(client, guildId, messageId) {
     category: 'Giveaway',
     title: 'Giveaway Selesai',
     description: `Giveaway **${gwData.prize}** selesai. Pemenang: ${winnersText}`,
-    color: 0xFEE75C
+    color: COLORS.WARNING
   });
 }
 

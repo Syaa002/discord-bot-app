@@ -1,7 +1,9 @@
 const { EmbedBuilder } = require('discord.js');
 const db = require('../database/jsonDb');
 
-async function sendLog(guild, { category, title, description, fields = [], color = 0x5865F2, author = null }) {
+const { COLORS } = require('../utils/embeds');
+
+async function sendLog(guild, { category, title, description, fields = [], color = COLORS.PRIMARY, author = null }) {
   try {
     const guildData = db.getGuild(guild.id);
     if (!guildData.modLogChannel) return;

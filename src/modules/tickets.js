@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const db = require('../database/jsonDb');
 const { sendLog } = require('./logger');
+const { COLORS } = require('../utils/embeds');
 
 const TRANSCRIPTS_DIR = path.join(__dirname, '..', '..', 'data', 'transcripts');
 if (!fs.existsSync(TRANSCRIPTS_DIR)) fs.mkdirSync(TRANSCRIPTS_DIR, { recursive: true });
@@ -25,7 +26,7 @@ const TICKET_TYPES = [
 
 function createTicketPanelMessage() {
   const embed = new EmbedBuilder()
-    .setColor(0x5865F2)
+    .setColor(COLORS.PRIMARY)
     .setTitle('🎫 Pusat Bantuan & Dukungan Tiket')
     .setDescription(
       'Butuh bantuan staf atau ingin melaporkan sesuatu?\n' +
@@ -99,7 +100,7 @@ async function handleTicketInteraction(interaction) {
       });
 
       const welcomeEmbed = new EmbedBuilder()
-        .setColor(0x57F287)
+        .setColor(COLORS.SUCCESS)
         .setTitle(`🎫 Tiket: ${categoryInfo.label}`)
         .setDescription(
           `Halo ${member}, terima kasih telah menghubungi kami!\n` +
@@ -128,7 +129,7 @@ async function handleTicketInteraction(interaction) {
         category: 'Tiket',
         title: 'Tiket Baru Dibuat',
         description: `Pengguna ${member} membuka tiket ${ticketChannel} (Kategori: ${categoryInfo.label}).`,
-        color: 0x57F287,
+        color: COLORS.SUCCESS,
         author: member.user
       });
     } catch (err) {
@@ -155,7 +156,7 @@ async function handleTicketInteraction(interaction) {
         category: 'Tiket',
         title: 'Tiket Ditutup',
         description: `Channel tiket \`${channel.name}\` ditutup oleh ${interaction.user}. Transkrip telah disimpan.`,
-        color: 0xED4245,
+        color: COLORS.ERROR,
         author: interaction.user
       });
 

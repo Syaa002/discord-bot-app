@@ -1,6 +1,14 @@
-require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
+
+// Fallback node_modules jika belum menjalankan npm install di folder ini
+const fallbackModules = path.join('D:', 'discordbot', 'node_modules');
+if (!fs.existsSync(path.join(__dirname, 'node_modules')) && fs.existsSync(fallbackModules)) {
+  process.env.NODE_PATH = fallbackModules;
+  require('module').Module._initPaths();
+}
+
+require('dotenv').config();
 const {
   Client,
   GatewayIntentBits,

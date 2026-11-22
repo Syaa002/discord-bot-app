@@ -1,6 +1,7 @@
 const { PermissionFlagsBits } = require('discord.js');
 const db = require('../database/jsonDb');
 const { sendLog } = require('./logger');
+const { COLORS } = require('../utils/embeds');
 
 const PHISHING_REGEX = /(?:discord(?:app)?\.(?:gift|gifts|net|org|co|gg\/nitro)|dlscord|discrod|nitro-gift|steamcommuniity|free-nitro|airdrop-nitro)/i;
 const INVITE_REGEX = /(?:https?:\/\/)?(?:www\.)?(?:discord\.(?:gg|io|me|li)|discord(?:app)?\.com\/invite)\/([a-zA-Z0-9\-]+)/i;
@@ -35,7 +36,7 @@ async function checkAutoMod(message) {
           { name: 'Isi Pesan', value: message.content.substring(0, 1000) },
           { name: 'Tindakan', value: 'Pesan dihapus & Timeout 24 jam' }
         ],
-        color: 0xED4245,
+        color: COLORS.ERROR,
         author: message.author
       });
 
