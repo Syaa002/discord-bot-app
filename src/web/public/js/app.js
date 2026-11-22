@@ -5,6 +5,14 @@
 let currentGuildId = null;
 let currentGuildData = null;
 
+// State Auto-Role Server yang Dipilih
+let autoRoleState = {
+  enabled: false,
+  userRoles: [],
+  botRoles: [],
+  delaySeconds: 0
+};
+
 // Tampilkan Toast Notifikasi
 function showToast(message, isError = false) {
   const toast = document.getElementById('toast');
@@ -97,7 +105,7 @@ async function loadGuildDetails(guildId) {
     const roles = data.roles || [];
     const config = data.config || {};
 
-    // Isi Dropdown Saluran Teks
+    // Isi Dropdown Saluran Teks & Suara
     const textChannels = channels.filter(c => c.type === 0);
     const voiceChannels = channels.filter(c => c.type === 2);
     const categories = channels.filter(c => c.type === 4);
@@ -106,9 +114,8 @@ async function loadGuildDetails(guildId) {
     populateSelect('ytAlertChannelSelect', textChannels, null, 'Pilih saluran Discord...');
     populateSelect('voiceJoinChannelSelect', voiceChannels, config.joinToCreateChannel, 'Pilih saluran suara...');
     populateSelect('ticketCategorySelect', categories, config.ticketCategory, 'Pilih kategori tiket...');
-    populateSelect('autoRoleSelect', roles, config.autoRole, 'Non-aktif (Tanpa Auto-Role)');
 
-    // Isi Pengaturan Dasar
+    // Isi Pengaturan Dasar Server
     document.getElementById('guildPrefixInput').value = config.prefix || '!';
 
     // Isi Auto-Mod
@@ -119,6 +126,25 @@ async function loadGuildDetails(guildId) {
 
     // Render Tabel YouTube Feeds
     renderYtFeeds(config.trackedFeeds?.youtube || [], channels);
+
+    // ===================================================================
+    // INITIALIZE ADVANCED AUTO-ROLE SYSTEM
+    // ===================================================================
+    autoRoleState = config.autoRole || { enabled: false, userRoles: [], botRoles: [], delaySeconds: 0 };
+
+    // Tampilkan Info Hierarki Role Bot
+    const botInfo = data.botInfo || {};
+    document.getElementById('botHighestRoleLabel').innerText = `${botInfo.highestRoleName || 'Tidak Diketahui'} (Posisi #${botInfo.highestRolePosition || 0})`;
+
+    document.getElementById('toggleAutoRoleMaster').checked = autoRoleState.enabled;
+    document.getElementById('autoRoleDelaySelect').value = String(autoRoleState.delaySeconds || 0);
+
+    // Isi Dropdown Pilih Role untuk Ditambahkan
+    populateRoleAddSelect('selectAddUserRole', roles);
+    populateRoleAddSelect('selectAddBotRole', roles);
+
+    // Render Chips Role yang Sedang Aktif
+    renderAutoRoleChips();
 
     // Render Giveaway
     const gwContainer = document.getElementById('giveawayListContainer');
@@ -155,6 +181,131 @@ function populateSelect(elemId, items, selectedVal, defaultLabel) {
     elem.appendChild(opt);
   });
 }
+
+// Dropdown khusus penambahan role dengan indikator warna & hierarki
+function populateRoleAddSelect(elemId, roles) {
+  const elem = document.getElementById(elemId);
+  if (!elem) return;
+  elem.innerHTML = '<option value="">Pilih role untuk ditambahkan...</option>';
+
+  roles.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r.id;
+    if (r.assignable) {
+      opt.innerText = `● ${r.name}`;
+    } else {
+      opt.innerText = `⚠️ ${r.name} (Role bot di bawah ini)`;
+      opt.disabled = true;
+    }
+    elem.appendChild(opt);
+  });
+}
+
+// Render Badge/Chips untuk User Roles & Bot Roles
+function renderAutoRoleChips() {
+  const roles = currentGuildData?.roles || [];
+
+  // 1. User Roles Chips
+  const userContainer = document.getElementById('userRolesChipsContainer');
+  if (autoRoleState.userRoles.length === 0) {
+    userContainer.innerHTML = '<span style="color: var(--zt-text-muted); font-size: 13px;">Belum ada role member yang dipilih.</span>';
+  } else {
+    userContainer.innerHTML = autoRoleState.userRoles.map(roleId => {
+      const r = roles.find(item => item.id === roleId) || { name: 'Role Tidak Dikenal', color: '#99AAB5' };
+      const dotColor = r.color && r.color !== '#000000' ? r.color : 'var(--zt-pink)';
+      return `
+        <div class="role-chip">
+          <span class="role-color-dot" style="background-color: ${dotColor};"></span>
+          <span>${r.name}</span>
+          <button type="button" class="role-chip-remove" onclick="removeUserRole('${roleId}')" title="Hapus role ini">&times;</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // 2. Bot Roles Chips
+  const botContainer = document.getElementById('botRolesChipsContainer');
+  if (autoRoleState.botRoles.length === 0) {
+    botContainer.innerHTML = '<span style="color: var(--zt-text-muted); font-size: 13px;">Belum ada role bot yang dipilih.</span>';
+  } else {
+    botContainer.innerHTML = autoRoleState.botRoles.map(roleId => {
+      const r = roles.find(item => item.id === roleId) || { name: 'Role Tidak Dikenal', color: '#99AAB5' };
+      const dotColor = r.color && r.color !== '#000000' ? r.color : 'var(--zt-cyan)';
+      return `
+        <div class="role-chip">
+          <span class="role-color-dot" style="background-color: ${dotColor};"></span>
+          <span>${r.name}</span>
+          <button type="button" class="role-chip-remove" onclick="removeBotRole('${roleId}')" title="Hapus role ini">&times;</button>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+// Tambah / Hapus Role User
+window.removeUserRole = function(roleId) {
+  autoRoleState.userRoles = autoRoleState.userRoles.filter(id => id !== roleId);
+  renderAutoRoleChips();
+};
+
+document.getElementById('btnAddUserRole')?.addEventListener('click', () => {
+  const select = document.getElementById('selectAddUserRole');
+  const roleId = select.value;
+  if (!roleId) return showToast('Pilih role terlebih dahulu!', true);
+
+  if (autoRoleState.userRoles.includes(roleId)) {
+    return showToast('Role ini sudah ada dalam daftar!', true);
+  }
+
+  autoRoleState.userRoles.push(roleId);
+  renderAutoRoleChips();
+  select.value = '';
+});
+
+// Tambah / Hapus Role Bot
+window.removeBotRole = function(roleId) {
+  autoRoleState.botRoles = autoRoleState.botRoles.filter(id => id !== roleId);
+  renderAutoRoleChips();
+};
+
+document.getElementById('btnAddBotRole')?.addEventListener('click', () => {
+  const select = document.getElementById('selectAddBotRole');
+  const roleId = select.value;
+  if (!roleId) return showToast('Pilih role bot terlebih dahulu!', true);
+
+  if (autoRoleState.botRoles.includes(roleId)) {
+    return showToast('Role ini sudah ada dalam daftar!', true);
+  }
+
+  autoRoleState.botRoles.push(roleId);
+  renderAutoRoleChips();
+  select.value = '';
+});
+
+// Simpan Konfigurasi Lengkap Auto-Role
+document.getElementById('btnSaveAutoRoleConfig')?.addEventListener('click', async () => {
+  if (!currentGuildId) return;
+
+  const enabled = document.getElementById('toggleAutoRoleMaster').checked;
+  const delaySeconds = parseInt(document.getElementById('autoRoleDelaySelect').value, 10) || 0;
+
+  try {
+    const res = await fetch(`/api/guild/${currentGuildId}/autorole`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        enabled,
+        delaySeconds,
+        userRoles: autoRoleState.userRoles,
+        botRoles: autoRoleState.botRoles
+      })
+    });
+    const json = await res.json();
+    showToast(json.message || 'Konfigurasi Auto-Role berhasil disimpan!');
+  } catch {
+    showToast('Gagal menyimpan konfigurasi Auto-Role.', true);
+  }
+});
 
 function renderYtFeeds(feeds, channels) {
   const tbody = document.getElementById('ytFeedTableBody');
@@ -253,25 +404,7 @@ document.getElementById('btnSaveTicketConfig')?.addEventListener('click', async 
   }
 });
 
-// 9. Simpan Auto-Role
-document.getElementById('btnSaveAutoRole')?.addEventListener('click', async () => {
-  if (!currentGuildId) return;
-  const autoRole = document.getElementById('autoRoleSelect').value;
-
-  try {
-    const res = await fetch(`/api/guild/${currentGuildId}/config`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ autoRole })
-    });
-    const json = await res.json();
-    showToast(json.message || 'Auto-Role disimpan!');
-  } catch {
-    showToast('Gagal menyimpan auto-role.', true);
-  }
-});
-
-// 10. Tambah Feed YouTube
+// 9. Tambah Feed YouTube
 document.getElementById('formAddYtFeed')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!currentGuildId) return;
@@ -295,7 +428,7 @@ document.getElementById('formAddYtFeed')?.addEventListener('submit', async (e) =
 });
 
 // Hapus Feed YouTube
-async function deleteYtFeed(channelId) {
+window.deleteYtFeed = async function(channelId) {
   if (!confirm(`Hapus pemantauan untuk channel YouTube ${channelId}?`)) return;
   try {
     const res = await fetch(`/api/guild/${currentGuildId}/feed/youtube`, {
@@ -309,9 +442,9 @@ async function deleteYtFeed(channelId) {
   } catch {
     showToast('Gagal menghapus feed.', true);
   }
-}
+};
 
-// 11. Ubah Status Presence Bot
+// 10. Ubah Status Presence Bot
 document.getElementById('presenceForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const activityType = document.getElementById('presenceType').value;
@@ -330,13 +463,13 @@ document.getElementById('presenceForm')?.addEventListener('submit', async (e) =>
   }
 });
 
-// 12. Ganti Pilihan Server di Dropdown Topbar
+// 11. Ganti Pilihan Server di Dropdown Topbar
 document.getElementById('serverSelect')?.addEventListener('change', (e) => {
   currentGuildId = e.target.value;
   if (currentGuildId) loadGuildDetails(currentGuildId);
 });
 
-// 13. Logout
+// 12. Logout
 document.getElementById('btnLogout')?.addEventListener('click', async () => {
   await fetch('/api/logout', { method: 'POST' });
   window.location.href = '/login';

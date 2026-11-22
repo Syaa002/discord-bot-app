@@ -176,8 +176,33 @@ function startWebServer(client) {
         if (!guild) return sendJson(res, 404, { error: 'Guild tidak ditemukan' });
 
         const guildData = db.getGuild(guildId);
+        const botMember = guild.members.me;
+        const botHighestPos = botMember ? botMember.roles.highest.position : 0;
+        const botHighestName = botMember ? botMember.roles.highest.name : 'Unknown';
+
         const channels = guild.channels.cache.map(c => ({ id: c.id, name: c.name, type: c.type, parentId: c.parentId }));
-        const roles = guild.roles.cache.map(r => ({ id: r.id, name: r.name, color: r.hexColor }));
+        const roles = guild.roles.cache
+          .filter(r => r.id !== guild.id)
+          .sort((a, b) => b.position - a.position)
+          .map(r => ({
+            id: r.id,
+            name: r.name,
+            color: r.hexColor,
+            position: r.position,
+            managed: r.managed,
+            assignable: botHighestPos > r.position && !r.managed
+          }));
+
+        // Normalisasi autoRole config
+        const rawAutoRole = guildData.autoRole;
+        const normalizedAutoRole = typeof rawAutoRole === 'string'
+          ? { enabled: true, userRoles: [rawAutoRole], botRoles: [], delaySeconds: 0 }
+          : {
+              enabled: Boolean(rawAutoRole?.enabled),
+              userRoles: Array.isArray(rawAutoRole?.userRoles) ? rawAutoRole.userRoles : [],
+              botRoles: Array.isArray(rawAutoRole?.botRoles) ? rawAutoRole.botRoles : [],
+              delaySeconds: parseInt(rawAutoRole?.delaySeconds, 10) || 0
+            };
 
         return sendJson(res, 200, {
           id: guild.id,
@@ -185,8 +210,32 @@ function startWebServer(client) {
           icon: guild.iconURL() || '',
           channels,
           roles,
-          config: guildData
+          botInfo: {
+            highestRoleName: botHighestName,
+            highestRolePosition: botHighestPos
+          },
+          config: {
+            ...guildData,
+            autoRole: normalizedAutoRole
+          }
         });
+      }
+
+      // POST /api/guild/:id/autorole
+      if (req.method === 'POST' && pathname.match(/^\/api\/guild\/[0-9]+\/autorole$/)) {
+        const guildId = pathname.split('/')[3];
+        const body = await getRequestBody(req);
+
+        db.updateGuild(guildId, data => {
+          data.autoRole = {
+            enabled: Boolean(body.enabled),
+            userRoles: Array.isArray(body.userRoles) ? body.userRoles : [],
+            botRoles: Array.isArray(body.botRoles) ? body.botRoles : [],
+            delaySeconds: Math.max(0, parseInt(body.delaySeconds, 10) || 0)
+          };
+        });
+
+        return sendJson(res, 200, { success: true, message: 'Konfigurasi Auto-Role berhasil disimpan!' });
       }
 
       // POST /api/guild/:id/config

@@ -305,17 +305,98 @@
 
         <!-- 7. TAB: ROLES -->
         <section id="tab-roles" class="tab-pane" style="display: none;">
+          <!-- Card Utama: Status & Master Switch -->
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title"><span>🎭</span> Pengaturan Auto-Role (Member Baru Join)</h3>
+              <h3 class="card-title"><span>🎭</span> Sistem Auto-Role Member Baru</h3>
+              <span class="zt-badge">On-Join Handler</span>
             </div>
-            <div class="form-group">
-              <label class="form-label">Role Otomatis Member Baru</label>
-              <select id="autoRoleSelect" class="form-input">
-                <option value="">Non-aktif (Tanpa Auto-Role)</option>
+
+            <div class="info-banner" id="botHierarchyBanner">
+              <span>👑</span>
+              <div>
+                <strong>Role Tertinggi Bot:</strong> <span id="botHighestRoleLabel">Memuat...</span>
+                <div style="font-size: 11px; color: var(--zt-text-muted);">
+                  Bot hanya dapat memberikan role yang posisinya berada di bawah role tertinggi bot di server.
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-wrapper" style="margin-bottom: 16px;">
+              <div class="toggle-info">
+                <h4>Aktifkan Sistem Auto-Role</h4>
+                <p>Otomatis memberikan role kepada setiap member yang baru bergabung ke server.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggleAutoRoleMaster">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="form-group" style="max-width: 300px;">
+              <label class="form-label">Jeda Waktu Pemberian Role</label>
+              <select id="autoRoleDelaySelect" class="form-input">
+                <option value="0">⚡ Instan (Langsung saat join)</option>
+                <option value="5">⏳ 5 Detik</option>
+                <option value="10">⏳ 10 Detik</option>
+                <option value="30">⏳ 30 Detik</option>
+                <option value="60">⏳ 1 Menit (Raid Protection)</option>
+                <option value="300">⏳ 5 Menit</option>
               </select>
             </div>
-            <button id="btnSaveAutoRole" class="btn-zt-primary" style="width: auto;">SIMPAN AUTO-ROLE</button>
+          </div>
+
+          <!-- Card 2: Role Member Manusia (Users) -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>👤</span> Role Otomatis untuk Member Biasa (User)</h3>
+            </div>
+            <p style="color: var(--zt-text-muted); font-size: 13px; margin-bottom: 12px;">
+              Role berikut akan otomatis diberikan kepada pengguna biasa yang baru bergabung:
+            </p>
+
+            <div class="role-chips-container" id="userRolesChipsContainer">
+              <span style="color: var(--zt-text-muted); font-size: 13px;">Belum ada role member yang dipilih.</span>
+            </div>
+
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+              <select id="selectAddUserRole" class="form-input" style="flex: 1; min-width: 200px;">
+                <option value="">Pilih role untuk ditambahkan...</option>
+              </select>
+              <button type="button" id="btnAddUserRole" class="btn-zt-primary" style="width: auto; padding: 10px 20px;">
+                + Tambah Role
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 3: Role Khusus Bot -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>🤖</span> Role Otomatis untuk Akun Bot</h3>
+            </div>
+            <p style="color: var(--zt-text-muted); font-size: 13px; margin-bottom: 12px;">
+              Role khusus jika ada bot lain yang di-invite bergabung ke server (misal role "Bots" / "Apps"):
+            </p>
+
+            <div class="role-chips-container" id="botRolesChipsContainer">
+              <span style="color: var(--zt-text-muted); font-size: 13px;">Belum ada role bot yang dipilih.</span>
+            </div>
+
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+              <select id="selectAddBotRole" class="form-input" style="flex: 1; min-width: 200px;">
+                <option value="">Pilih role bot untuk ditambahkan...</option>
+              </select>
+              <button type="button" id="btnAddBotRole" class="btn-zt-primary" style="width: auto; padding: 10px 20px;">
+                + Tambah Role Bot
+              </button>
+            </div>
+          </div>
+
+          <!-- Tombol Simpan -->
+          <div style="text-align: right; margin-bottom: 30px;">
+            <button id="btnSaveAutoRoleConfig" class="btn-zt-primary" style="width: auto; padding: 14px 36px; font-size: 16px;">
+              💾 SIMPAN SEMUA PENGATURAN AUTO-ROLE
+            </button>
           </div>
         </section>
 
