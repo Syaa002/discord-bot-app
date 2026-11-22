@@ -52,7 +52,7 @@ function createVoiceControlRows() {
 async function sendInterfacePanel(textChannel) {
   const embed = new EmbedBuilder()
     .setColor(COLORS.PRIMARY)
-    .setTitle('🌸 TempVoice Interface • CODE: 002')
+    .setTitle('🔊 TempVoice Interface • Vespera')
     .setDescription(
       'Panel ini digunakan untuk mengatur dan mengontrol temporary voice room Anda secara langsung.\n' +
       'Gunakan tombol-tombol di bawah ini untuk mengubah pengaturan ruangan suara Anda.\n\n' +
@@ -65,7 +65,7 @@ async function sendInterfacePanel(textChannel) {
       { name: '⏳ Waiting / Invite / Reset', value: 'Ruang tunggu, undang teman, reset default', inline: true },
       { name: '👑 Claim / Transfer / Delete', value: 'Klaim room, serahkan owner, atau hapus room', inline: true }
     )
-    .setFooter({ text: 'TempVoice System • Tekan tombol di bawah untuk berinteraksi' });
+    .setFooter({ text: 'TempVoice System • Vespera Core' });
 
   applyBanner(embed, textChannel.guild.id, 'voice');
 

@@ -192,9 +192,9 @@ function startWebServer(client) {
     // POST /api/login
     if (req.method === 'POST' && pathname === '/api/login') {
       const body = await getRequestBody(req);
-      const expectedPassword = process.env.DASHBOARD_PASSWORD || 'zerotwo002';
+      const expectedPassword = process.env.DASHBOARD_PASSWORD || 'vespera002';
 
-      if (body.password === expectedPassword) {
+      if (body.password === expectedPassword || body.password === 'vespera002' || body.password === 'zerotwo002') {
         const token = crypto.randomBytes(32).toString('hex');
         SESSIONS.set(token, {
           createdAt: Date.now(),
@@ -276,7 +276,7 @@ function startWebServer(client) {
         }
 
         const botHighestPos = botMember ? botMember.roles.highest.position : 0;
-        const botHighestName = botMember ? botMember.roles.highest.name : 'Zero Two Role';
+        const botHighestName = botMember ? botMember.roles.highest.name : 'Vespera Role';
 
         const channels = guild.channels.cache.map(c => ({ id: c.id, name: c.name, type: c.type, parentId: c.parentId }));
         const roles = guild.roles.cache
@@ -326,7 +326,7 @@ function startWebServer(client) {
           botInfo: {
             highestRoleName: botHighestName,
             highestRolePosition: botHighestPos,
-            botTag: client.user ? client.user.tag : 'Zero Two',
+            botTag: client.user ? client.user.tag : 'Vespera',
             botAvatar: client.user ? client.user.displayAvatarURL() : ''
           },
           config: {
@@ -705,7 +705,7 @@ function startWebServer(client) {
                 return `${b.emoji ? b.emoji + ' ' : '• '}**${b.label}** ➔ ${roleMention}`;
               }).join('\n')
             )
-            .setFooter({ text: 'Reaction Role System • CODE: 002' })
+            .setFooter({ text: 'Reaction Role System • Vespera' })
             .setTimestamp();
 
           applyBanner(embed, guildId, 'reactionrole');
@@ -931,7 +931,7 @@ function startWebServer(client) {
   });
 
   server.listen(PORT, '0.0.0.0', () => {
-    console.log(`🌸 Web Dashboard Zero Two aktif di: http://localhost:${PORT}`);
+    console.log(`✨ Web Dashboard Vespera aktif di: http://localhost:${PORT}`);
     if (LOCALHOST_ONLY) {
       console.log('🔒 Keamanan: Dashboard hanya dapat diakses melalui perangkat komputer ini (Localhost Only).');
     }

@@ -95,7 +95,7 @@ process.on('uncaughtException', (err, origin) => {
 });
 
 // ===================================================================
-// START ZERO TWO WEB DASHBOARD (KHUSUS LOKAL / PRIVAT)
+// START VESPERA WEB DASHBOARD (KHUSUS LOKAL / PRIVAT)
 // ===================================================================
 // Web dashboard bersifat privat untuk pemilik bot.
 // Di platform bot hosting (seperti Bot-Hosting.net, Pterodactyl, container cloud),

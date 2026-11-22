@@ -1,6 +1,6 @@
-# Discord Bot App
+# Vespera • Discord Bot & Web Dashboard
 
-Bot Discord serbaguna dengan arsitektur modular yang mendukung interaksi melalui awalan **`!`** maupun **Slash Command (`/`)**. Seluruh tampilan pesan Embed bot dan Web Dashboard mengusung estetika palet warna karakter **Zero Two (*Darling in the Franxx* • CODE: 002)**.
+Bot Discord serbaguna dengan arsitektur modular yang mendukung interaksi melalui awalan **`!`** maupun **Slash Command (`/`)**. Seluruh tampilan pesan Embed bot dan Web Dashboard mengusung identitas dan estetika modern elegan **Vespera (Server System • Core OS)**.
 
 ---
 
@@ -98,12 +98,13 @@ Bot Discord serbaguna dengan arsitektur modular yang mendukung interaksi melalui
 
 ---
 
-### 7. 🌸 Web Dashboard Privat (Tema Zero Two • CODE: 002)
+### 7. ✨ Web Dashboard Privat (Tema Vespera • Core OS)
 * **Akses Khusus Pemilik**: Dilindungi dengan autentikasi kata sandi privat dan pembatasan akses hanya dari perangkat lokal (`Localhost Only`) sehingga hanya Anda yang dapat membukanya.
-* **Desain Eksklusif Karakter Zero Two (*Darling in the Franxx*)**: Mengusung estetika palet warna rambut sakura pink (`#FF758F`), seragam crimson red (`#EF233C`), aksen cyan Franxx, dan badge ikonik `CODE: 002`.
+* **Desain Eksklusif Vespera System**: Mengusung estetika palet warna rose-crimson elegan (`#FF758F`, `#EF233C`), aksen toska cyan (`#00F5D4`), dark slate modern, dan badge `CORE OS`.
 * **Ringkasan Sistem Real-Time**: Pemantauan langsung status gateway WebSocket ping, jumlah server & member, uptime, serta pengontrol status aktivitas bot (*Presence Controller*).
 * **Manajemen Auto-Mod Interaktif**: Tombol toggle untuk mengaktifkan/menonaktifkan Anti-Phishing, Anti-Mass Mention, dan Anti-Invite secara visual.
 * **Visualisasi & Kontrol Temporary Voice**: Pengaturan saluran *Join to Create*, pengiriman panel 18 tombol langsung ke saluran teks seperti `#interface`, serta pratinjau matriks tombol interaktif.
 * **Manajemen Feed Notifikasi YouTube & TikTok**: Tambah dan hapus ID channel YouTube dan akun TikTok yang dipantau langsung dari dashboard.
 * **Pembuat Reaction Role & Auto-Role**: Pembuat panel Reaction Role (tombol interaktif, warna Discord, emoji) serta manajemen Auto-Role terperinci (user & bot).
+* **Kustomisasi Banner & Disable Command**: Pengaturan banner embed global dan per-fitur dengan live preview serta manajemen pengaktifan/penonaktifan perintah per-server.
 * **Pemantau Tiket, Giveaway & Server**: Memantau kategori tiket, melihat giveaway aktif beserta jumlah peserta, serta konfigurasi prefix & log moderasi.

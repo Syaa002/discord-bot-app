@@ -1,5 +1,5 @@
 // ===================================================================
-// ZERO TWO DASHBOARD FRONTEND LOGIC
+// VESPERA DASHBOARD FRONTEND LOGIC
 // ===================================================================
 
 let currentGuildId = null;
@@ -17,7 +17,7 @@ let autoRoleState = {
 let currentRrButtons = [];
 
 // ===================================================================
-// TOAST NOTIFICATION (ANIMATED ZERO TWO THEME)
+// TOAST NOTIFICATION (ANIMATED VESPERA THEME)
 // ===================================================================
 let toastTimeout = null;
 function showToast(message, isError = false) {

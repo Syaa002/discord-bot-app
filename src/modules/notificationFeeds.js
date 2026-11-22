@@ -75,7 +75,7 @@ async function checkYouTubeFeeds(client) {
               .setAuthor({ name: latest.author, iconURL: 'https://cdn-icons-png.flaticon.com/512/1384/1384060.png' })
               .setDescription(`**${latest.author}** baru saja meng-upload video baru ke YouTube!\n\n👉 [Tonton Sekarang](${latest.url})`)
               .setImage(`https://img.youtube.com/vi/${latest.videoId}/maxresdefault.jpg`)
-              .setFooter({ text: 'YouTube Tracker • CODE: 002' })
+              .setFooter({ text: 'YouTube Tracker • Vespera System' })
               .setTimestamp();
 
             await alertChannel.send({
@@ -150,7 +150,7 @@ async function checkTikTokFeeds(client) {
                 { name: 'Total Video', value: `${currentCount} Video`, inline: true },
                 { name: 'Followers', value: stats.followerCount ? stats.followerCount.toLocaleString() : '-', inline: true }
               )
-              .setFooter({ text: 'TikTok Tracker • CODE: 002' })
+              .setFooter({ text: 'TikTok Tracker • Vespera System' })
               .setTimestamp();
 
             applyBanner(embed, guild.id, 'feeds');

@@ -70,10 +70,10 @@ module.exports = {
       try {
         const welcomeEmbed = new EmbedBuilder()
           .setColor(COLORS.PRIMARY)
-          .setTitle(`🌸 Selamat Datang di ${guild.name}!`)
+          .setTitle(`✨ Selamat Datang di ${guild.name}!`)
           .setDescription(`Halo ${member}, selamat datang di server! Kamu adalah member ke-**${guild.memberCount}**.\nSemoga betah dan silakan cek channel yang tersedia. ✨`)
           .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }))
-          .setFooter({ text: 'Zero Two Welcome System • CODE: 002' })
+          .setFooter({ text: 'Vespera Welcome System • Server Core' })
           .setTimestamp();
 
         applyBanner(welcomeEmbed, guild.id, 'welcome');

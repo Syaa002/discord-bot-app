@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zero Two Dashboard • Login</title>
+  <title>Vespera Dashboard • Login</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
   <div class="login-container">
     <div class="login-card">
-      <div class="zt-horn-icon">🌸</div>
-      <h1 class="login-title">ZERO TWO DASHBOARD</h1>
-      <span class="zt-badge">CODE: 002 • FRANXX SYSTEM</span>
+      <div class="zt-horn-icon">✨</div>
+      <h1 class="login-title">VESPERA DASHBOARD</h1>
+      <span class="zt-badge">SERVER SYSTEM • CORE OS</span>
 
       <p style="color: var(--zt-text-muted); font-size: 14px; margin-bottom: 24px;">
-        "Darling, buktikan identitasmu untuk mengakses kendali bot."
+        Silakan masukkan kata sandi untuk mengakses kontrol sistem Vespera.
       </p>
 
       <form id="loginForm">
@@ -24,14 +24,14 @@
         </div>
 
         <button type="submit" class="btn-zt-primary" id="btnSubmit">
-          MASUK KE KOKPIT
+          MASUK KE DASHBOARD
         </button>
       </form>
 
       <div id="errorMsg" style="color: var(--zt-red-bright); font-size: 13px; font-weight: 700; margin-top: 16px; display: none;"></div>
 
       <p class="login-hint">
-        🔒 Akses ini dilindungi secara privat khusus pemilik bot.
+        🔒 Akses ini dilindungi secara privat khusus pemilik bot Vespera.
       </p>
     </div>
   </div>
@@ -64,13 +64,13 @@
         } else {
           errorMsg.innerText = data.message || 'Password salah!';
           errorMsg.style.display = 'block';
-          btnSubmit.innerText = 'MASUK KE KOKPIT';
+          btnSubmit.innerText = 'MASUK KE DASHBOARD';
           btnSubmit.disabled = false;
         }
       } catch (err) {
         errorMsg.innerText = 'Gagal menghubungi server.';
         errorMsg.style.display = 'block';
-        btnSubmit.innerText = 'MASUK KE KOKPIT';
+        btnSubmit.innerText = 'MASUK KE DASHBOARD';
         btnSubmit.disabled = false;
       }
     });

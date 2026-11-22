@@ -1,7 +1,7 @@
 {
-  "name": "discord-bot-app",
+  "name": "vespera-bot-app",
   "version": "1.0.0",
-  "description": "Discord Bot Modern Lengkap: Moderasi, Auto-Mod, Temporary Voice, Tiket, Giveaway, Reaction Role, Notifikasi YouTube/TikTok, dan Audit Trail",
+  "description": "Vespera • Discord Bot & Web Dashboard: Moderasi, Auto-Mod, Temporary Voice, Tiket, Giveaway, Reaction Role, Notifikasi YouTube/TikTok, dan Kustomisasi Banner",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

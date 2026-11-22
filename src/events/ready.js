@@ -9,7 +9,7 @@ module.exports = {
     console.log(`🏰 Terhubung ke ${client.guilds.cache.size} server Discord.`);
 
     // Atur status default
-    client.user.setActivity('!help | Menjaga Server', { type: ActivityType.Watching });
+    client.user.setActivity('Vespera • Server System', { type: ActivityType.Playing });
 
     // Mulai layanan background pemantauan notifikasi YouTube & TikTok
     startNotificationService(client);

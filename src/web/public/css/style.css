@@ -1,7 +1,7 @@
 /* ===================================================================
-   ZERO TWO (DARLING IN THE FRANXX) THEME STYLESHEET
-   Palet: Sakura Pink (#FF758F, #FF4D6D), Crimson Red (#D90429, #EF233C),
-          Franxx Deep Dark (#0B0C10, #13151F, #1C1F2E), Cyan Glow (#00F5D4)
+   VESPERA (SERVER SYSTEM • CORE OS) THEME STYLESHEET
+   Palet: Signature Rose (#FF758F, #FF4D6D), Vivid Crimson (#D90429, #EF233C),
+          Deep Obsidian Slate (#0A0B10, #13151F, #1C1F2E), Cyan Glow (#00F5D4)
    =================================================================== */
 
 :root {
@@ -56,7 +56,7 @@ body {
 }
 
 /* ===================================================================
-   LOGIN PAGE (ZERO TWO AESTHETIC)
+   LOGIN PAGE (VESPERA AESTHETIC)
    =================================================================== */
 .login-container {
   display: flex;
@@ -781,7 +781,7 @@ input:checked + .slider:before {
   color: #FFE8A3;
 }
 
-/* NOTIFICATIONS / TOAST (ANIMATED ZERO TWO THEME) */
+/* NOTIFICATIONS / TOAST (ANIMATED VESPERA THEME) */
 .toast {
   position: fixed;
   bottom: 24px;
