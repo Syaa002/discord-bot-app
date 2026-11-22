@@ -494,30 +494,194 @@ input:checked + .slider:before {
   background-color: #FFFFFF;
 }
 
-/* VOICE BUTTONS MATRIX PREVIEW */
-.voice-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 12px;
-  margin-top: 16px;
+/* VOICE BUTTONS & DISCORD MOCKUP (ACCURATE DISCORD COMPONENT API) */
+.discord-mockup-frame {
+  background: #1e1f22;
+  border: 1px solid rgba(255, 117, 143, 0.25);
+  border-radius: 12px;
+  padding: 20px;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  margin-top: 14px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
-.voice-btn-card {
-  background: #0E1017;
-  border: 1px solid rgba(255, 117, 143, 0.2);
-  padding: 12px;
-  border-radius: 8px;
-  text-align: center;
+.discord-msg-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.discord-avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--zt-red-bright), var(--zt-pink));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 0 12px rgba(255, 117, 143, 0.4);
+}
+
+.discord-bot-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #F2F3F5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.discord-bot-tag {
+  background: #5865F2;
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.discord-msg-time {
+  font-size: 12px;
+  color: #949BA4;
+  margin-left: 4px;
+  font-weight: 400;
+}
+
+.discord-embed-box {
+  background: #2B2D31;
+  border-left: 4px solid var(--zt-pink);
+  border-radius: 4px 8px 8px 4px;
+  padding: 16px 18px;
+  max-width: 680px;
+  margin-left: 52px;
+  margin-bottom: 14px;
+}
+
+.discord-embed-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.discord-embed-desc {
+  font-size: 13px;
+  color: #DBDEE1;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.discord-embed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.discord-embed-field h5 {
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  color: #F2F3F5;
+  margin-bottom: 4px;
 }
 
-.voice-btn-card.danger {
-  border-color: var(--zt-red-bright);
-  color: var(--zt-pink-soft);
-  background: rgba(239, 35, 60, 0.1);
+.discord-embed-field p {
+  font-size: 12px;
+  color: #B5BAC1;
+  line-height: 1.4;
 }
+
+.discord-embed-footer {
+  font-size: 11px;
+  color: #949BA4;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+/* 4 ACTION ROWS (MAX 5 BUTTONS PER ROW SEPERTI DISCORD API) */
+.discord-action-rows {
+  margin-left: 52px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 680px;
+}
+
+.discord-button-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.discord-button-row.row-3 {
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 408px;
+}
+
+.discord-btn {
+  background: #383A40;
+  color: #F2F3F5;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 10px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: default;
+  transition: all 0.2s ease;
+  user-select: none;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.discord-btn:hover {
+  background: #404249;
+  border-color: rgba(255, 117, 143, 0.4);
+  transform: translateY(-1px);
+}
+
+.discord-btn.danger {
+  background: #DA373C;
+  color: #FFFFFF;
+}
+
+.discord-btn.danger:hover {
+  background: #C03135;
+}
+
+.discord-btn.primary {
+  background: #5865F2;
+  color: #FFFFFF;
+}
+
+.discord-btn.primary:hover {
+  background: #4752C4;
+}
+
+@media (max-width: 768px) {
+  .discord-embed-box, .discord-action-rows {
+    margin-left: 0;
+  }
+  .discord-button-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .discord-button-row.row-3 {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 100%;
+  }
+}
+
 
 /* TABLES */
 .table-responsive {

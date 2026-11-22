@@ -185,70 +185,188 @@
 
         <!-- 3. TAB: VOICE ROOMS -->
         <section id="tab-voice" class="tab-pane" style="display: none;">
+          <!-- Card 1: Konfigurasi Saluran & Penyebaran Panel Interface -->
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title"><span>🔊</span> Pengaturan Temporary Voice</h3>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Saluran "Join to Create"</label>
-              <select id="voiceJoinChannelSelect" class="form-input">
-                <option value="">Pilih saluran suara...</option>
-              </select>
-            </div>
-            <button id="btnSaveVoiceChannel" class="btn-zt-primary" style="width: auto;">SIMPAN SALURAN VOICE</button>
-          </div>
-
-          <!-- Card Kirim Interface Panel ke Saluran Teks (seperti #interface) -->
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title"><span>✨</span> Saluran Panel Voice Interface (seperti #interface)</h3>
+              <h3 class="card-title"><span>🔊</span> Pengaturan Sistem Temporary Voice</h3>
               <span class="zt-badge">Live Controller</span>
             </div>
-            <p style="color: var(--zt-text-muted); font-size: 13px; margin-bottom: 16px;">
-              Sematkan panel pengendali 18 tombol permanen langsung ke saluran teks (misalnya saluran <code>#✨ | interface</code>).
-              Member yang sedang bergabung di temporary voice room mereka dapat langsung menekan tombol di saluran tersebut untuk mengatur batas member, privasi, kick, trust, dan kontrol lainnya secara instan!
+            <p style="color: var(--zt-text-muted); font-size: 13px; margin-bottom: 20px;">
+              Atur saluran suara <em>Join to Create</em> serta tentukan saluran teks permanen (misalnya <code>#✨ | interface</code>) tempat bot menyematkan panel kontrol 18 tombol untuk member.
             </p>
-            <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
-              <div class="form-group" style="flex: 2; min-width: 250px; margin-bottom: 0;">
-                <label class="form-label">Pilih Saluran Teks Tujuan</label>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">🔊 Saluran "Join to Create" (Voice)</label>
+                <select id="voiceJoinChannelSelect" class="form-input">
+                  <option value="">Pilih saluran suara...</option>
+                </select>
+                <span style="font-size: 11px; color: var(--zt-text-muted); display: block; margin-top: 6px;">
+                  Member yang bergabung ke saluran ini otomatis dibuatkan temporary room pribadi.
+                </span>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">✨ Saluran Panel Interface (Text Channel, misal #interface)</label>
                 <select id="voiceInterfaceChannelSelect" class="form-input">
                   <option value="">Pilih saluran teks (misal: #interface)...</option>
                 </select>
+                <span style="font-size: 11px; color: var(--zt-text-muted); display: block; margin-top: 6px;">
+                  Tempat menyematkan pesan embed kontrol 18 tombol permanen ke Discord.
+                </span>
               </div>
-              <button type="button" id="btnSendVoiceInterface" class="btn-zt-primary" style="width: auto; padding: 12px 24px;">
+            </div>
+
+            <div style="display: flex; gap: 14px; flex-wrap: wrap; justify-content: flex-end;">
+              <button id="btnSaveVoiceChannel" class="btn-logout" style="padding: 12px 24px; font-size: 13px; font-weight: 700;">
+                💾 SIMPAN PENGATURAN SALURAN
+              </button>
+              <button type="button" id="btnSendVoiceInterface" class="btn-zt-primary" style="width: auto; padding: 12px 28px;">
                 🚀 KIRIM PANEL INTERFACE KE DISCORD
               </button>
             </div>
+
             <div id="voiceInterfaceStatus" style="margin-top: 14px; font-size: 13px; color: var(--zt-cyan); display: none;"></div>
           </div>
 
-          <!-- Matriks 18 Tombol Kontrol -->
+          <!-- Card 2: Pratinjau Interaktif Panel Discord (#interface Mockup) -->
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title"><span>🎛️</span> Matriks 18 Tombol Kontrol Panel Interaktif</h3>
+              <h3 class="card-title"><span>🌸</span> Pratinjau Panel Interaktif (#interface)</h3>
+              <span class="zt-badge">18 Tombol Kontrol</span>
             </div>
-            <p style="color: var(--zt-text-muted); font-size: 14px; margin-bottom: 16px;">
-              Tombol-tombol ini otomatis disematkan ke chat text voice room setiap kali member membuat ruangan sementara:
+            <p style="color: var(--zt-text-muted); font-size: 13px; margin-bottom: 12px;">
+              Tampilan persis panel embed dan 4 baris tombol kontrol yang disematkan bot ke saluran Discord Anda:
             </p>
-            <div class="voice-grid">
-              <div class="voice-btn-card">👥 LIMIT</div>
-              <div class="voice-btn-card">💬 CHAT</div>
-              <div class="voice-btn-card">🏷️ NAME</div>
-              <div class="voice-btn-card">🔒 PRIVACY</div>
-              <div class="voice-btn-card">📶 BITRATE</div>
-              <div class="voice-btn-card">📞 KICK</div>
-              <div class="voice-btn-card">👤 TRUST</div>
-              <div class="voice-btn-card">👤 UNTRUST</div>
-              <div class="voice-btn-card">🚫 BLOCK</div>
-              <div class="voice-btn-card">🔓 UNBLOCK</div>
-              <div class="voice-btn-card">⚙️ RESET</div>
-              <div class="voice-btn-card">⏳ WAITING ROOM</div>
-              <div class="voice-btn-card">📞 INVITE</div>
-              <div class="voice-btn-card">🌐 REGION</div>
-              <div class="voice-btn-card">👑 CLAIM</div>
-              <div class="voice-btn-card">🔄 TRANSFER</div>
-              <div class="voice-btn-card danger">🗑️ DELETE (OWNER)</div>
-              <div class="voice-btn-card">ℹ️ INFO</div>
+
+            <!-- Discord Chat Frame Mockup -->
+            <div class="discord-mockup-frame">
+              <div class="discord-msg-head">
+                <div class="discord-avatar-circle">🌸</div>
+                <div class="discord-bot-name">
+                  <span>Zero Two</span>
+                  <span class="discord-bot-tag">BOT</span>
+                  <span class="discord-msg-time">Hari ini pukul 12:00</span>
+                </div>
+              </div>
+
+              <!-- Embed Message -->
+              <div class="discord-embed-box">
+                <div class="discord-embed-title">
+                  <span>🌸</span> TempVoice Interface • CODE: 002
+                </div>
+                <div class="discord-embed-desc">
+                  Panel ini digunakan untuk mengatur dan mengontrol temporary voice room Anda secara langsung.<br>
+                  Gunakan tombol-tombol di bawah ini untuk mengubah pengaturan ruangan suara Anda.<br><br>
+                  👉 <strong>Penting:</strong> Pastikan Anda sedang bergabung di dalam temporary voice room Anda saat menekan tombol.
+                </div>
+                <div class="discord-embed-grid">
+                  <div class="discord-embed-field">
+                    <h5>👥 Limit / Chat / Name</h5>
+                    <p>Batas member, chat text, ganti nama</p>
+                  </div>
+                  <div class="discord-embed-field">
+                    <h5>🔒 Privacy / Bitrate</h5>
+                    <p>Kunci/buka room, sesuaikan bitrate</p>
+                  </div>
+                  <div class="discord-embed-field">
+                    <h5>📞 Kick / Trust / Block</h5>
+                    <p>Keluarkan, trusted, atau blokir</p>
+                  </div>
+                  <div class="discord-embed-field">
+                    <h5>⏳ Waiting / Invite / Reset</h5>
+                    <p>Ruang tunggu, undang teman, reset</p>
+                  </div>
+                  <div class="discord-embed-field">
+                    <h5>👑 Claim / Transfer / Delete</h5>
+                    <p>Klaim, serahkan owner, hapus room</p>
+                  </div>
+                </div>
+                <div class="discord-embed-footer">
+                  TempVoice System • Tekan tombol di bawah untuk berinteraksi
+                </div>
+              </div>
+
+              <!-- 4 Action Rows (5 + 5 + 5 + 3) -->
+              <div class="discord-action-rows">
+                <!-- Baris 1: Kontrol Dasar -->
+                <div class="discord-button-row">
+                  <div class="discord-btn" title="Atur batas kuota member ruangan">👥 LIMIT</div>
+                  <div class="discord-btn" title="Buka/tutup chat teks ruangan">💬 CHAT</div>
+                  <div class="discord-btn" title="Ubah nama temporary voice room">🏷️ NAME</div>
+                  <div class="discord-btn" title="Kunci atau buka room untuk umum">🔒 PRIVACY</div>
+                  <div class="discord-btn" title="Atur bitrate kualitas audio (8-384 kbps)">📶 BITRATE</div>
+                </div>
+
+                <!-- Baris 2: Keamanan & Akses -->
+                <div class="discord-button-row">
+                  <div class="discord-btn" title="Keluarkan member dari voice room">📞 KICK</div>
+                  <div class="discord-btn" title="Beri izin khusus pada member trusted">👤 TRUST</div>
+                  <div class="discord-btn" title="Cabut izin trusted member">👤 UNTRUST</div>
+                  <div class="discord-btn" title="Blokir member agar tidak bisa masuk">🚫 BLOCK</div>
+                  <div class="discord-btn" title="Buka blokir member">🔓 UNBLOCK</div>
+                </div>
+
+                <!-- Baris 3: Fitur & Wilayah -->
+                <div class="discord-button-row">
+                  <div class="discord-btn" title="Reset pengaturan room ke setelan awal">⚙️ RESET</div>
+                  <div class="discord-btn" title="Aktifkan ruang tunggu (mute saat join)">⏳ WAITING ROOM</div>
+                  <div class="discord-btn" title="Buat link invite instan ke room">📞 INVITE</div>
+                  <div class="discord-btn" title="Ubah wilayah server voice (Region)">🌐 REGION</div>
+                  <div class="discord-btn" title="Klaim kepemilikan jika owner disconnect">👑 CLAIM</div>
+                </div>
+
+                <!-- Baris 4: Kepemilikan & Status -->
+                <div class="discord-button-row row-3">
+                  <div class="discord-btn" title="Serahkan kepemilikan ruangan ke orang lain">🔄 TRANSFER</div>
+                  <div class="discord-btn danger" title="Hanya Pemilik Ruangan atau Admin yang dapat menghapus">🗑️ DELETE (OWNER)</div>
+                  <div class="discord-btn primary" title="Lihat status dan rincian ruangan">ℹ️ INFO</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Panduan 3 Kategori Fungsi Tombol Kontrol -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>📖</span> Panduan Fungsi 18 Tombol Kontrol</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+              <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--zt-border); border-radius: 8px; padding: 14px;">
+                <h4 style="color: var(--zt-pink); font-size: 14px; margin-bottom: 8px;">🛠️ Pengaturan Ruangan</h4>
+                <ul style="list-style: none; font-size: 12px; color: var(--zt-text-muted); line-height: 1.8;">
+                  <li><strong>👥 LIMIT</strong> — Menentukan jumlah maksimal member di room.</li>
+                  <li><strong>💬 CHAT</strong> — Membuka akses obrolan teks saluran.</li>
+                  <li><strong>🏷️ NAME</strong> — Mengganti nama voice room sesuka hati.</li>
+                  <li><strong>🔒 PRIVACY</strong> — Mengunci room agar orang asing tidak masuk.</li>
+                  <li><strong>📶 BITRATE</strong> — Menyesuaikan kualitas suara panggilan.</li>
+                  <li><strong>🌐 REGION</strong> — Memilih lokasi server Discord terdekat.</li>
+                  <li><strong>⚙️ RESET</strong> — Mengembalikan setelan voice ke default.</li>
+                </ul>
+              </div>
+
+              <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--zt-border); border-radius: 8px; padding: 14px;">
+                <h4 style="color: var(--zt-cyan); font-size: 14px; margin-bottom: 8px;">🛡️ Izin & Keamanan</h4>
+                <ul style="list-style: none; font-size: 12px; color: var(--zt-text-muted); line-height: 1.8;">
+                  <li><strong>📞 KICK</strong> — Mengeluarkan user yang mengganggu.</li>
+                  <li><strong>👤 TRUST</strong> — Memberikan izin bicara dan bypass kunci.</li>
+                  <li><strong>👤 UNTRUST</strong> — Menghapus status trusted pengguna.</li>
+                  <li><strong>🚫 BLOCK</strong> — Memblokir user agar tidak bisa join.</li>
+                  <li><strong>🔓 UNBLOCK</strong> — Membuka blokir pengguna tertentu.</li>
+                  <li><strong>⏳ WAITING ROOM</strong> — Member harus diizinkan sebelum berbicara.</li>
+                  <li><strong>📞 INVITE</strong> — Membuat link undangan cepat ke ruangan.</li>
+                </ul>
+              </div>
+
+              <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--zt-border); border-radius: 8px; padding: 14px;">
+                <h4 style="color: var(--zt-pink-soft); font-size: 14px; margin-bottom: 8px;">👑 Kepemilikan & Status</h4>
+                <ul style="list-style: none; font-size: 12px; color: var(--zt-text-muted); line-height: 1.8;">
+                  <li><strong>👑 CLAIM</strong> — Klaim otomatis jika pembuat room telah keluar.</li>
+                  <li><strong>🔄 TRANSFER</strong> — Menyerahkan hak milik room ke teman.</li>
+                  <li><strong>🗑️ DELETE</strong> — <span style="color: var(--zt-red-bright); font-weight: 700;">Hanya Pemilik / Admin</span> yang bisa menghapus.</li>
+                  <li><strong>ℹ️ INFO</strong> — Menampilkan data statistik room secara ephemeral.</li>
+                </ul>
+              </div>
             </div>
           </div>
         </section>
