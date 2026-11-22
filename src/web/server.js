@@ -1,0 +1,328 @@
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const url = require('url');
+const crypto = require('crypto');
+const db = require('../database/jsonDb');
+
+const PUBLIC_DIR = path.join(__dirname, 'public');
+const SESSIONS = new Map(); // token -> { createdAt, expiresAt }
+const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 Jam
+
+// MIME Types untuk file statis
+const MIME_TYPES = {
+  '.html': 'text/html; charset=UTF-8',
+  '.css': 'text/css; charset=UTF-8',
+  '.js': 'application/javascript; charset=UTF-8',
+  '.json': 'application/json; charset=UTF-8',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon'
+};
+
+function parseCookies(request) {
+  const list = {};
+  const rc = request.headers.cookie;
+  if (rc) {
+    rc.split(';').forEach(cookie => {
+      const parts = cookie.split('=');
+      list[parts.shift().trim()] = decodeURI(parts.join('='));
+    });
+  }
+  return list;
+}
+
+function isAuthenticated(req) {
+  const cookies = parseCookies(req);
+  const token = cookies['zero_auth_token'];
+  if (!token || !SESSIONS.has(token)) return false;
+
+  const session = SESSIONS.get(token);
+  if (Date.now() > session.expiresAt) {
+    SESSIONS.delete(token);
+    return false;
+  }
+  return true;
+}
+
+function sendJson(res, statusCode, data) {
+  res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(data));
+}
+
+function getRequestBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk;
+      if (body.length > 1e6) { // 1MB limit
+        req.connection.destroy();
+        reject(new Error('Payload too large'));
+      }
+    });
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (err) {
+        resolve({});
+      }
+    });
+  });
+}
+
+function startWebServer(client) {
+  const PORT = parseInt(process.env.DASHBOARD_PORT, 10) || 3000;
+  const LOCALHOST_ONLY = process.env.DASHBOARD_LOCALHOST_ONLY === 'true';
+
+  const server = http.createServer(async (req, res) => {
+    const parsedUrl = url.parse(req.url, true);
+    const pathname = parsedUrl.pathname;
+    const clientIp = req.socket.remoteAddress;
+
+    // 1. Keamanan Khusus: Batasi Akses Hanya ke Localhost Jika Diaktifkan
+    if (LOCALHOST_ONLY) {
+      const isLocal = clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === '::ffff:127.0.0.1';
+      if (!isLocal) {
+        res.writeHead(403, { 'Content-Type': 'text/plain' });
+        return res.end('403 Forbidden: Dashboard hanya diizinkan untuk pemilik bot (Localhost Only).');
+      }
+    }
+
+    // CORS & Security Headers
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+
+    // ===================================================================
+    // API ENDPOINTS
+    // ===================================================================
+
+    // POST /api/login
+    if (req.method === 'POST' && pathname === '/api/login') {
+      const body = await getRequestBody(req);
+      const expectedPassword = process.env.DASHBOARD_PASSWORD || 'zerotwo002';
+
+      if (body.password === expectedPassword) {
+        const token = crypto.randomBytes(32).toString('hex');
+        SESSIONS.set(token, {
+          createdAt: Date.now(),
+          expiresAt: Date.now() + SESSION_DURATION
+        });
+
+        res.writeHead(200, {
+          'Content-Type': 'application/json',
+          'Set-Cookie': `zero_auth_token=${token}; HttpOnly; Path=/; Max-Age=86400; SameSite=Strict`
+        });
+        return res.end(JSON.stringify({ success: true, message: 'Selamat datang kembali, Darling!' }));
+      } else {
+        return sendJson(res, 401, { success: false, message: 'Password salah! Akses ditolak.' });
+      }
+    }
+
+    // POST /api/logout
+    if (req.method === 'POST' && pathname === '/api/logout') {
+      const cookies = parseCookies(req);
+      if (cookies['zero_auth_token']) {
+        SESSIONS.delete(cookies['zero_auth_token']);
+      }
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Set-Cookie': 'zero_auth_token=; HttpOnly; Path=/; Max-Age=0'
+      });
+      return res.end(JSON.stringify({ success: true }));
+    }
+
+    // GET /api/auth-check
+    if (pathname === '/api/auth-check') {
+      return sendJson(res, 200, { authenticated: isAuthenticated(req) });
+    }
+
+    // Middleware Proteksi untuk Endpoint API & Halaman Utama
+    if (pathname.startsWith('/api/')) {
+      if (!isAuthenticated(req)) {
+        return sendJson(res, 401, { error: 'Unauthorized: Sesi tidak valid' });
+      }
+
+      // GET /api/stats
+      if (pathname === '/api/stats') {
+        const uptime = process.uptime();
+        return sendJson(res, 200, {
+          botTag: client.user ? client.user.tag : 'Bot Offline',
+          botAvatar: client.user ? client.user.displayAvatarURL() : '',
+          uptime,
+          ping: client.ws ? Math.round(client.ws.ping) : 0,
+          guildsCount: client.guilds ? client.guilds.cache.size : 0,
+          usersCount: client.guilds ? client.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0) : 0,
+          channelsCount: client.channels ? client.channels.cache.size : 0,
+          memoryUsage: (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)
+        });
+      }
+
+      // GET /api/guilds
+      if (pathname === '/api/guilds') {
+        const guilds = client.guilds ? client.guilds.cache.map(g => ({
+          id: g.id,
+          name: g.name,
+          icon: g.iconURL() || '',
+          memberCount: g.memberCount
+        })) : [];
+        return sendJson(res, 200, { guilds });
+      }
+
+      // GET /api/guild/:id
+      if (req.method === 'GET' && pathname.startsWith('/api/guild/')) {
+        const guildId = pathname.split('/')[3];
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) return sendJson(res, 404, { error: 'Guild tidak ditemukan' });
+
+        const guildData = db.getGuild(guildId);
+        const channels = guild.channels.cache.map(c => ({ id: c.id, name: c.name, type: c.type, parentId: c.parentId }));
+        const roles = guild.roles.cache.map(r => ({ id: r.id, name: r.name, color: r.hexColor }));
+
+        return sendJson(res, 200, {
+          id: guild.id,
+          name: guild.name,
+          icon: guild.iconURL() || '',
+          channels,
+          roles,
+          config: guildData
+        });
+      }
+
+      // POST /api/guild/:id/config
+      if (req.method === 'POST' && pathname.match(/^\/api\/guild\/[0-9]+\/config$/)) {
+        const guildId = pathname.split('/')[3];
+        const body = await getRequestBody(req);
+
+        db.updateGuild(guildId, data => {
+          if (body.prefix !== undefined) data.prefix = body.prefix;
+          if (body.modLogChannel !== undefined) data.modLogChannel = body.modLogChannel;
+          if (body.autoRole !== undefined) data.autoRole = body.autoRole;
+          if (body.joinToCreateChannel !== undefined) data.joinToCreateChannel = body.joinToCreateChannel;
+          if (body.ticketCategory !== undefined) data.ticketCategory = body.ticketCategory;
+        });
+
+        return sendJson(res, 200, { success: true, message: 'Pengaturan server berhasil diperbarui!' });
+      }
+
+      // POST /api/guild/:id/automod
+      if (req.method === 'POST' && pathname.match(/^\/api\/guild\/[0-9]+\/automod$/)) {
+        const guildId = pathname.split('/')[3];
+        const body = await getRequestBody(req);
+
+        db.updateGuild(guildId, data => {
+          if (!data.autoMod) data.autoMod = {};
+          if (body.antiPhishing !== undefined) data.autoMod.antiPhishing = Boolean(body.antiPhishing);
+          if (body.antiMassMention !== undefined) data.autoMod.antiMassMention = Boolean(body.antiMassMention);
+          if (body.antiInvite !== undefined) data.autoMod.antiInvite = Boolean(body.antiInvite);
+          if (body.maxMentions !== undefined) data.autoMod.maxMentions = parseInt(body.maxMentions, 10) || 5;
+        });
+
+        return sendJson(res, 200, { success: true, message: 'Konfigurasi Auto-Mod berhasil diperbarui!' });
+      }
+
+      // POST /api/guild/:id/feed/youtube
+      if (req.method === 'POST' && pathname.match(/^\/api\/guild\/[0-9]+\/feed\/youtube$/)) {
+        const guildId = pathname.split('/')[3];
+        const body = await getRequestBody(req);
+        if (!body.channelId || !body.alertChannelId) {
+          return sendJson(res, 400, { error: 'Channel ID YouTube dan Alert Channel wajib diisi.' });
+        }
+
+        db.updateGuild(guildId, data => {
+          if (!data.trackedFeeds) data.trackedFeeds = { youtube: [], tiktok: [] };
+          if (!data.trackedFeeds.youtube) data.trackedFeeds.youtube = [];
+          data.trackedFeeds.youtube.push({
+            channelId: body.channelId,
+            alertChannelId: body.alertChannelId,
+            lastVideoId: null
+          });
+        });
+
+        return sendJson(res, 200, { success: true, message: 'Notifikasi YouTube berhasil ditambahkan!' });
+      }
+
+      // DELETE /api/guild/:id/feed/youtube
+      if (req.method === 'DELETE' && pathname.match(/^\/api\/guild\/[0-9]+\/feed\/youtube$/)) {
+        const guildId = pathname.split('/')[3];
+        const body = await getRequestBody(req);
+
+        db.updateGuild(guildId, data => {
+          if (data.trackedFeeds?.youtube) {
+            data.trackedFeeds.youtube = data.trackedFeeds.youtube.filter(f => f.channelId !== body.channelId);
+          }
+        });
+
+        return sendJson(res, 200, { success: true, message: 'Feed YouTube berhasil dihapus.' });
+      }
+
+      // POST /api/bot/presence
+      if (req.method === 'POST' && pathname === '/api/bot/presence') {
+        const body = await getRequestBody(req);
+        if (client.user && body.statusText) {
+          client.user.setActivity(body.statusText, { type: parseInt(body.activityType, 10) || 0 });
+          return sendJson(res, 200, { success: true, message: 'Status bot berhasil diperbarui!' });
+        }
+        return sendJson(res, 400, { error: 'Data tidak valid' });
+      }
+
+      return sendJson(res, 404, { error: 'Endpoint API tidak ditemukan' });
+    }
+
+    // ===================================================================
+    // STATIC FILE SERVING
+    // ===================================================================
+
+    // Routing Halaman Login
+    if (pathname === '/login' || pathname === '/login.html') {
+      const filePath = path.join(PUBLIC_DIR, 'login.html');
+      return serveStaticFile(res, filePath, '.html');
+    }
+
+    // Routing Halaman Utama (Wajib Login)
+    if (pathname === '/' || pathname === '/index.html') {
+      if (!isAuthenticated(req)) {
+        res.writeHead(302, { Location: '/login' });
+        return res.end();
+      }
+      const filePath = path.join(PUBLIC_DIR, 'index.html');
+      return serveStaticFile(res, filePath, '.html');
+    }
+
+    // File Statis (CSS, JS, Images, dll)
+    const safePath = path.normalize(pathname).replace(/^(\.\.[\/\\])+/, '');
+    const fullPath = path.join(PUBLIC_DIR, safePath);
+
+    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+      const ext = path.extname(fullPath).toLowerCase();
+      return serveStaticFile(res, fullPath, ext);
+    }
+
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('404 Not Found');
+  });
+
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`🌸 Web Dashboard Zero Two aktif di: http://localhost:${PORT}`);
+    if (LOCALHOST_ONLY) {
+      console.log('🔒 Keamanan: Dashboard hanya dapat diakses melalui perangkat komputer ini (Localhost Only).');
+    }
+  });
+
+  return server;
+}
+
+function serveStaticFile(res, filePath, ext) {
+  try {
+    const content = fs.readFileSync(filePath);
+    res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
+    res.end(content);
+  } catch (err) {
+    res.writeHead(500, { 'Content-Type': 'text/plain' });
+    res.end('500 Internal Server Error');
+  }
+}
+
+module.exports = {
+  startWebServer
+};

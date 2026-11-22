@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zero Two Dashboard • Bot Control Center</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="zt-horn-icon" style="width: 42px; height: 42px; font-size: 20px; margin: 0;">🌸</div>
+        <div class="sidebar-brand">
+          <h2>ZERO TWO</h2>
+          <span>CODE: 002</span>
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li class="sidebar-item">
+          <a class="sidebar-link active" data-tab="tab-overview">
+            <span>📊</span> Ringkasan Sistem
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" data-tab="tab-automod">
+            <span>🛡️</span> Auto-Mod & Proteksi
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" data-tab="tab-voice">
+            <span>🔊</span> Temporary Voice (18 Tombol)
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" data-tab="tab-feeds">
+            <span>📢</span> Notifikasi YT & TikTok
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" data-tab="tab-tickets">
+            <span>🎫</span> Tiket & Transkrip
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" data-tab="tab-giveaway">
+            <span>🎉</span> Giveaway Interaktif
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" data-tab="tab-roles">
+            <span>🎭</span> Reaction Role & Auto-Role
+          </a>
+        </li>
+        <li class="sidebar-item">
+          <a class="sidebar-link" data-tab="tab-settings">
+            <span>⚙️</span> Konfigurasi Server
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div style="font-size: 11px; color: var(--zt-text-muted); text-align: center;">
+          Darling in the Franxx Aesthetic<br>
+          <strong style="color: var(--zt-pink);">Private Admin Panel</strong>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <label style="font-size: 13px; font-weight: 700; color: var(--zt-pink-soft);">PILIH SERVER:</label>
+          <select id="serverSelect" class="server-select">
+            <option value="">Memuat server...</option>
+          </select>
+        </div>
+
+        <div class="topbar-right">
+          <div class="bot-status-pill">
+            <div class="status-dot"></div>
+            <span id="botTagText">Bot Menghubungkan...</span>
+          </div>
+
+          <button id="btnLogout" class="btn-logout">Logout</button>
+        </div>
+      </header>
+
+      <!-- CONTENT BODY -->
+      <main class="content-body">
+        
+        <!-- 1. TAB: OVERVIEW -->
+        <section id="tab-overview" class="tab-pane active">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-title">Status Gateway</div>
+              <div class="stat-value" id="valPing" style="color: var(--zt-cyan);">-- ms</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-title">Total Server (Guilds)</div>
+              <div class="stat-value" id="valGuilds">--</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-title">Total Member Dilayani</div>
+              <div class="stat-value" id="valUsers">--</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-title">Uptime Bot</div>
+              <div class="stat-value" id="valUptime" style="font-size: 20px;">--</div>
+            </div>
+          </div>
+
+          <!-- Presence Controller -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>🎮</span> Ubah Status Presence Bot (Live)</h3>
+            </div>
+            <form id="presenceForm" style="display: flex; gap: 16px; flex-wrap: wrap;">
+              <select id="presenceType" class="form-input" style="flex: 1; min-width: 160px;">
+                <option value="0">Playing (Bermain)</option>
+                <option value="2">Listening (Mendengarkan)</option>
+                <option value="3">Watching (Menonton)</option>
+                <option value="5">Competing (Berlaga)</option>
+              </select>
+              <input type="text" id="presenceText" class="form-input" style="flex: 3; min-width: 250px;" placeholder="Teks aktivitas baru (misal: Menjaga Server dengan Zero Two)">
+              <button type="submit" class="btn-zt-primary" style="width: auto; padding: 12px 28px;">SIMPAN STATUS</button>
+            </form>
+          </div>
+        </section>
+
+        <!-- 2. TAB: AUTOMOD -->
+        <section id="tab-automod" class="tab-pane" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>🛡️</span> Mesin Proteksi Auto-Mod Server</h3>
+              <span class="zt-badge">Proteksi 24/7</span>
+            </div>
+
+            <div class="toggle-wrapper">
+              <div class="toggle-info">
+                <h4>Anti-Phishing & Scam Links</h4>
+                <p>Otomatis menghapus link scam Discord Nitro palsu / Steam phishing dan memberikan timeout 24 jam.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="togglePhishing">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-wrapper">
+              <div class="toggle-info">
+                <h4>Anti-Mass Mention</h4>
+                <p>Otomatis timeout member yang spam mention banyak orang atau tag @everyone tanpa izin.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggleMassMention">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-wrapper">
+              <div class="toggle-info">
+                <h4>Anti-Invite Server Lain</h4>
+                <p>Mencegah promosi link invite server Discord lain tanpa izin admin.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggleInvite">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div style="margin-top: 24px; text-align: right;">
+              <button id="btnSaveAutoMod" class="btn-zt-primary" style="width: auto;">SIMPAN PROTEKSI</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. TAB: VOICE ROOMS -->
+        <section id="tab-voice" class="tab-pane" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>🔊</span> Pengaturan Temporary Voice</h3>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Saluran "Join to Create"</label>
+              <select id="voiceJoinChannelSelect" class="form-input">
+                <option value="">Pilih saluran suara...</option>
+              </select>
+            </div>
+            <button id="btnSaveVoiceChannel" class="btn-zt-primary" style="width: auto;">SIMPAN SALURAN VOICE</button>
+          </div>
+
+          <!-- Matriks 18 Tombol Kontrol -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>🎛️</span> Matriks 18 Tombol Kontrol Panel Interaktif</h3>
+            </div>
+            <p style="color: var(--zt-text-muted); font-size: 14px; margin-bottom: 16px;">
+              Tombol-tombol ini otomatis disematkan ke chat text voice room setiap kali member membuat ruangan sementara:
+            </p>
+            <div class="voice-grid">
+              <div class="voice-btn-card">👥 LIMIT</div>
+              <div class="voice-btn-card">💬 CHAT</div>
+              <div class="voice-btn-card">🏷️ NAME</div>
+              <div class="voice-btn-card">🔒 PRIVACY</div>
+              <div class="voice-btn-card">📶 BITRATE</div>
+              <div class="voice-btn-card">📞 KICK</div>
+              <div class="voice-btn-card">👤 TRUST</div>
+              <div class="voice-btn-card">👤 UNTRUST</div>
+              <div class="voice-btn-card">🚫 BLOCK</div>
+              <div class="voice-btn-card">🔓 UNBLOCK</div>
+              <div class="voice-btn-card">⚙️ RESET</div>
+              <div class="voice-btn-card">⏳ WAITING ROOM</div>
+              <div class="voice-btn-card">📞 INVITE</div>
+              <div class="voice-btn-card">🌐 REGION</div>
+              <div class="voice-btn-card">👑 CLAIM</div>
+              <div class="voice-btn-card">🔄 TRANSFER</div>
+              <div class="voice-btn-card danger">🗑️ DELETE (OWNER)</div>
+              <div class="voice-btn-card">ℹ️ INFO</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. TAB: NOTIFIKASI FEEDS -->
+        <section id="tab-feeds" class="tab-pane" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>🔴</span> Tambah Pemantau YouTube Video Baru</h3>
+            </div>
+            <form id="formAddYtFeed" style="display: flex; gap: 16px; flex-wrap: wrap;">
+              <input type="text" id="ytChannelIdInput" class="form-input" style="flex: 2;" placeholder="ID Channel YouTube (contoh: UCxxxxxxxxx)" required>
+              <select id="ytAlertChannelSelect" class="form-input" style="flex: 2;" required>
+                <option value="">Pilih channel Discord...</option>
+              </select>
+              <button type="submit" class="btn-zt-primary" style="width: auto;">+ TAMBAH FEED</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>📋</span> Daftar Channel yang Sedang Dipantau</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="zt-table">
+                <thead>
+                  <tr>
+                    <th>Channel ID YouTube</th>
+                    <th>Saluran Discord Notifikasi</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="ytFeedTableBody">
+                  <tr><td colspan="4" style="text-align: center; color: var(--zt-text-muted);">Belum ada feed yang dipantau.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. TAB: TICKETS -->
+        <section id="tab-tickets" class="tab-pane" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>🎫</span> Konfigurasi Sistem Tiket</h3>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Kategori Tempat Tiket Dibuka</label>
+              <select id="ticketCategorySelect" class="form-input">
+                <option value="">Pilih kategori...</option>
+              </select>
+            </div>
+            <button id="btnSaveTicketConfig" class="btn-zt-primary" style="width: auto;">SIMPAN KONFIGURASI TIKET</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>📁</span> 5 Tipe Kategori Bantuan Tiket</h3>
+            </div>
+            <ul style="list-style: none; padding-left: 0; color: var(--zt-text-muted); line-height: 2;">
+              <li>❓ <strong>Bantuan Umum</strong> — Pertanyaan seputar server & aturan</li>
+              <li>🛠️ <strong>Kendala Teknis</strong> — Masalah bug, bot, atau gangguan teknis</li>
+              <li>🚨 <strong>Laporan Pelanggaran</strong> — Laporan tindakan member yang melanggar rules</li>
+              <li>🤝 <strong>Kemitraan & Partner</strong> — Pengajuan kerjasama komunitas</li>
+              <li>💎 <strong>Donasi & Billing</strong> — Konfirmasi donasi server</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- 6. TAB: GIVEAWAY -->
+        <section id="tab-giveaway" class="tab-pane" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>🎉</span> Giveaway Aktif</h3>
+            </div>
+            <div id="giveawayListContainer" style="color: var(--zt-text-muted);">
+              Tidak ada giveaway yang sedang berlangsung di server ini saat ini. Gunakan <code>!giveaway &lt;durasi&gt; &lt;pemenang&gt; &lt;hadiah&gt;</code> di Discord untuk memulai!
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. TAB: ROLES -->
+        <section id="tab-roles" class="tab-pane" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>🎭</span> Pengaturan Auto-Role (Member Baru Join)</h3>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Role Otomatis Member Baru</label>
+              <select id="autoRoleSelect" class="form-input">
+                <option value="">Non-aktif (Tanpa Auto-Role)</option>
+              </select>
+            </div>
+            <button id="btnSaveAutoRole" class="btn-zt-primary" style="width: auto;">SIMPAN AUTO-ROLE</button>
+          </div>
+        </section>
+
+        <!-- 8. TAB: SETTINGS -->
+        <section id="tab-settings" class="tab-pane" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><span>⚙️</span> Konfigurasi Dasar Server</h3>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Prefix Perintah Bot</label>
+              <input type="text" id="guildPrefixInput" class="form-input" style="max-width: 120px;" placeholder="!">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Saluran Log Audit & Moderasi (Mod-Log)</label>
+              <select id="modLogChannelSelect" class="form-input">
+                <option value="">Pilih saluran log...</option>
+              </select>
+            </div>
+            <button id="btnSaveGeneralSettings" class="btn-zt-primary" style="width: auto;">SIMPAN PENGATURAN</button>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="toast">Notifikasi</div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

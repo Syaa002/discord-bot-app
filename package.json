@@ -1,0 +1,26 @@
+{
+  "name": "discord-bot-app",
+  "version": "1.0.0",
+  "description": "Discord Bot Modern Lengkap: Moderasi, Auto-Mod, Temporary Voice, Tiket, Giveaway, Reaction Role, Notifikasi YouTube/TikTok, dan Audit Trail",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "moderation",
+    "automod",
+    "voice-rooms",
+    "tickets",
+    "giveaways",
+    "reaction-role"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5",
+    "node-cron": "^3.0.3"
+  }
+}
