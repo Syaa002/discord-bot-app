@@ -35,7 +35,7 @@ module.exports = {
 
     try {
       const embed = new EmbedBuilder()
-        .setColor(0xED4245)
+        .setColor(0xEF233C)
         .setTitle('🚨 Laporan Pengguna Baru')
         .setDescription(`Laporan diajukan oleh ${message.author} (\`${message.author.id}\`)`)
         .addFields(
@@ -71,7 +71,7 @@ module.exports = {
 
     try {
       const embed = new EmbedBuilder()
-        .setColor(0xED4245)
+        .setColor(0xEF233C)
         .setTitle('🚨 Laporan Pengguna Baru')
         .setDescription(`Laporan diajukan oleh ${interaction.user} (\`${interaction.user.id}\`)`)
         .addFields(

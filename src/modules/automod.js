@@ -65,7 +65,7 @@ async function checkAutoMod(message) {
           title: 'Mass Mention Terdeteksi',
           description: `Pengguna ${message.author} (\`${message.author.id}\`) melakukan mention ${mentionCount} pengguna di ${message.channel}.`,
           fields: [{ name: 'Tindakan', value: 'Pesan dihapus & Timeout 1 jam' }],
-          color: 0xFEE75C,
+          color: COLORS.WARNING,
           author: message.author
         });
 
@@ -89,7 +89,7 @@ async function checkAutoMod(message) {
         title: 'Link Invite Terdeteksi',
         description: `Pengguna ${message.author} (\`${message.author.id}\`) mengirim link invite di ${message.channel}.`,
         fields: [{ name: 'Pesan', value: message.content.substring(0, 1000) }],
-        color: 0xFEE75C,
+        color: COLORS.WARNING,
         author: message.author
       });
 

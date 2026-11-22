@@ -22,7 +22,7 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setColor(0xED4245)
+      .setColor(0xEF233C)
       .setAuthor({ name: snipedMsg.author.tag, iconURL: snipedMsg.author.displayAvatarURL() })
       .setDescription(snipedMsg.content || '*Pesan tidak memiliki teks (mungkin berupa gambar/embed)*')
       .setFooter({ text: `Dihapus • <t:${Math.floor(snipedMsg.timestamp / 1000)}:R>` })
@@ -44,7 +44,7 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setColor(0xED4245)
+      .setColor(0xEF233C)
       .setAuthor({ name: snipedMsg.author.tag, iconURL: snipedMsg.author.displayAvatarURL() })
       .setDescription(snipedMsg.content || '*Pesan tidak memiliki teks (mungkin berupa gambar/embed)*')
       .setFooter({ text: `Dihapus • <t:${Math.floor(snipedMsg.timestamp / 1000)}:R>` })

@@ -21,7 +21,7 @@ module.exports = {
     const text = roles.slice(0, 30).join('\n') || 'Tidak ada role.';
 
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle(`🎭 Daftar Role Server (${roles.length})`)
       .setDescription(roles.length > 30 ? `${text}\n*...dan ${roles.length - 30} role lainnya.*` : text)
       .setTimestamp();
@@ -38,7 +38,7 @@ module.exports = {
     const text = roles.slice(0, 30).join('\n') || 'Tidak ada role.';
 
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle(`🎭 Daftar Role Server (${roles.length})`)
       .setDescription(roles.length > 30 ? `${text}\n*...dan ${roles.length - 30} role lainnya.*` : text)
       .setTimestamp();

@@ -62,7 +62,7 @@ module.exports = {
         category: 'Moderasi',
         title: 'Member Di-timeout',
         description: `**Target**: ${targetUser.tag} (\`${targetUser.id}\`)\n**Durasi**: ${args[1]}\n**Moderator**: ${message.author}\n**Alasan**: ${reason}`,
-        color: 0xFEE75C,
+        color: 0xFFB703,
         author: message.author
       });
     } catch (err) {
@@ -94,7 +94,7 @@ module.exports = {
         category: 'Moderasi',
         title: 'Member Di-timeout',
         description: `**Target**: ${targetUser.tag} (\`${targetUser.id}\`)\n**Durasi**: ${durStr}\n**Moderator**: ${interaction.user}\n**Alasan**: ${reason}`,
-        color: 0xFEE75C,
+        color: 0xFFB703,
         author: interaction.user
       });
     } catch (err) {

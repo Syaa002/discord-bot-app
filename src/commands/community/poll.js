@@ -28,7 +28,7 @@ module.exports = {
     const options = items.slice(1, 11); // Maks 10 opsi
 
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle(`📊 Polling: ${question}`)
       .setDescription(options.map((opt, i) => `${NUMBER_EMOJIS[i]} ${opt}`).join('\n\n'))
       .setFooter({ text: `Dibuat oleh ${message.author.tag}` })
@@ -50,7 +50,7 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle(`📊 Polling: ${question}`)
       .setDescription(options.map((opt, i) => `${NUMBER_EMOJIS[i]} ${opt}`).join('\n\n'))
       .setFooter({ text: `Dibuat oleh ${interaction.user.tag}` })

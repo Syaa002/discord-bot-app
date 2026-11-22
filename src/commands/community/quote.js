@@ -24,7 +24,7 @@ module.exports = {
     try {
       const targetMsg = await targetChannel.messages.fetch(msgId);
       const embed = new EmbedBuilder()
-        .setColor(0x5865F2)
+        .setColor(0xFF758F)
         .setAuthor({ name: targetMsg.author.tag, iconURL: targetMsg.author.displayAvatarURL() })
         .setDescription(targetMsg.content || '*[Pesan berupa media/embed]*')
         .addFields({ name: 'Sumber', value: `[Buka Pesan Asli](${targetMsg.url}) in ${targetChannel}` })
@@ -47,7 +47,7 @@ module.exports = {
     try {
       const targetMsg = await targetChannel.messages.fetch(msgId);
       const embed = new EmbedBuilder()
-        .setColor(0x5865F2)
+        .setColor(0xFF758F)
         .setAuthor({ name: targetMsg.author.tag, iconURL: targetMsg.author.displayAvatarURL() })
         .setDescription(targetMsg.content || '*[Pesan berupa media/embed]*')
         .addFields({ name: 'Sumber', value: `[Buka Pesan Asli](${targetMsg.url}) in ${targetChannel}` })

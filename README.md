@@ -1,6 +1,6 @@
 # Discord Bot App
 
-Bot Discord serbaguna dengan arsitektur modular yang mendukung interaksi melalui awalan **`!`** maupun **Slash Command (`/`)**.
+Bot Discord serbaguna dengan arsitektur modular yang mendukung interaksi melalui awalan **`!`** maupun **Slash Command (`/`)**. Seluruh tampilan pesan Embed bot dan Web Dashboard mengusung estetika palet warna karakter **Zero Two (*Darling in the Franxx* • CODE: 002)**.
 
 ---
 

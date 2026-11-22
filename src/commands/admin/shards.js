@@ -14,7 +14,7 @@ module.exports = {
 
     if (!shard) {
       const embed = new EmbedBuilder()
-        .setColor(0x5865F2)
+        .setColor(0xFF758F)
         .setTitle('💎 Status Sharding Bot')
         .setDescription('Bot saat ini berjalan dalam mode **Single Instance (No Sharding)**.')
         .addFields(
@@ -30,7 +30,7 @@ module.exports = {
       const guilds = await shard.fetchClientValues('guilds.cache.size');
 
       const embed = new EmbedBuilder()
-        .setColor(0x5865F2)
+        .setColor(0xFF758F)
         .setTitle(`💎 Info Sharding (${shard.count} Shard Total)`)
         .setDescription(ping.map((p, i) => `• **Shard #${i}**: Latensi \`${Math.round(p)}ms\` | **${guilds[i]}** Server`).join('\n'))
         .setTimestamp();

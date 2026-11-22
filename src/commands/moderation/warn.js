@@ -58,7 +58,7 @@ module.exports = {
       category: 'Moderasi',
       title: 'Peringatan Diberikan',
       description: `**Target**: ${targetUser.tag} (\`${targetUser.id}\`)\n**Moderator**: ${message.author}\n**Alasan**: ${reason}\n**ID**: \`${warnId}\``,
-      color: 0xFEE75C,
+      color: 0xFFB703,
       author: message.author
     });
   },
@@ -97,7 +97,7 @@ module.exports = {
       category: 'Moderasi',
       title: 'Peringatan Diberikan',
       description: `**Target**: ${targetUser.tag} (\`${targetUser.id}\`)\n**Moderator**: ${interaction.user}\n**Alasan**: ${reason}\n**ID**: \`${warnId}\``,
-      color: 0xFEE75C,
+      color: 0xFFB703,
       author: interaction.user
     });
   }

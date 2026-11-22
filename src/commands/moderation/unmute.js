@@ -36,7 +36,7 @@ module.exports = {
         category: 'Moderasi',
         title: 'Timeout Dicabut',
         description: `**Target**: ${targetUser.tag} (\`${targetUser.id}\`)\n**Moderator**: ${message.author}`,
-        color: 0x57F287,
+        color: 0xFF4D6D,
         author: message.author
       });
     } catch (err) {
@@ -60,7 +60,7 @@ module.exports = {
         category: 'Moderasi',
         title: 'Timeout Dicabut',
         description: `**Target**: ${targetUser.tag} (\`${targetUser.id}\`)\n**Moderator**: ${interaction.user}`,
-        color: 0x57F287,
+        color: 0xFF4D6D,
         author: interaction.user
       });
     } catch (err) {

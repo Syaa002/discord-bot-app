@@ -17,7 +17,7 @@ module.exports = {
     if (logs.length === 0) return message.reply('Belum ada log perintah yang tercatat.');
 
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle('📜 Riwayat Perintah Terakhir')
       .setDescription(logs.slice(-10).reverse().map(l => `• \`${l.command}\` oleh **${l.user}** di <#${l.channel}> (<t:${Math.floor(l.timestamp / 1000)}:R>)`).join('\n'))
       .setTimestamp();
@@ -30,7 +30,7 @@ module.exports = {
     if (logs.length === 0) return interaction.reply({ content: 'Belum ada log perintah yang tercatat.', ephemeral: true });
 
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle('📜 Riwayat Perintah Terakhir')
       .setDescription(logs.slice(-10).reverse().map(l => `• \`${l.command}\` oleh **${l.user}** di <#${l.channel}> (<t:${Math.floor(l.timestamp / 1000)}:R>)`).join('\n'))
       .setTimestamp();

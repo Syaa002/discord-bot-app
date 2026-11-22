@@ -37,7 +37,7 @@ module.exports = {
         category: 'Moderasi',
         title: 'User Di-unban',
         description: `**Target**: ${banInfo.user.tag} (\`${userId}\`)\n**Moderator**: ${message.author}\n**Alasan**: ${reason}`,
-        color: 0x57F287,
+        color: 0xFF4D6D,
         author: message.author
       });
     } catch (err) {
@@ -63,7 +63,7 @@ module.exports = {
         category: 'Moderasi',
         title: 'User Di-unban',
         description: `**Target**: ${banInfo.user.tag} (\`${userId}\`)\n**Moderator**: ${interaction.user}\n**Alasan**: ${reason}`,
-        color: 0x57F287,
+        color: 0xFF4D6D,
         author: interaction.user
       });
     } catch (err) {

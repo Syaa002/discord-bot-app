@@ -1,5 +1,6 @@
 node_modules/
 .env
+data/guilds/*.json
 data/backups/
 data/transcripts/
 *.log

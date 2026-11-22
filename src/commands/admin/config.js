@@ -42,7 +42,7 @@ module.exports = {
 
     if (sub === 'view') {
       const embed = new EmbedBuilder()
-        .setColor(0x5865F2)
+        .setColor(0xFF758F)
         .setTitle(`⚙️ Konfigurasi Server: ${message.guild.name}`)
         .addFields(
           { name: '⚡ Prefix', value: `\`${guildData.prefix}\``, inline: true },
@@ -112,7 +112,7 @@ module.exports = {
 
     if (sub === 'view') {
       const embed = new EmbedBuilder()
-        .setColor(0x5865F2)
+        .setColor(0xFF758F)
         .setTitle(`⚙️ Konfigurasi Server: ${interaction.guild.name}`)
         .addFields(
           { name: '⚡ Prefix', value: `\`${guildData.prefix}\``, inline: true },

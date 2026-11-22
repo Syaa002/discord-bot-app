@@ -37,7 +37,7 @@ module.exports = {
         }
 
         const embed = new EmbedBuilder()
-          .setColor(0x3498DB)
+          .setColor(0x00F5D4)
           .setTitle('💡 Tahukah Kamu? (Fakta Menarik)')
           .setDescription(factText)
           .setTimestamp();
@@ -47,7 +47,7 @@ module.exports = {
     }).on('error', () => {
       const fallback = FALLBACK_FACTS[Math.floor(Math.random() * FALLBACK_FACTS.length)];
       const embed = new EmbedBuilder()
-        .setColor(0x3498DB)
+        .setColor(0x00F5D4)
         .setTitle('💡 Tahukah Kamu? (Fakta Menarik)')
         .setDescription(fallback)
         .setTimestamp();
@@ -58,7 +58,7 @@ module.exports = {
   async executeSlash(interaction) {
     const fallback = FALLBACK_FACTS[Math.floor(Math.random() * FALLBACK_FACTS.length)];
     const embed = new EmbedBuilder()
-      .setColor(0x3498DB)
+      .setColor(0x00F5D4)
       .setTitle('💡 Tahukah Kamu? (Fakta Menarik)')
       .setDescription(fallback)
       .setTimestamp();

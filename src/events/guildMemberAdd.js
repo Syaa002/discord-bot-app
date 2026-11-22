@@ -1,5 +1,6 @@
 const db = require('../database/jsonDb');
 const { sendLog } = require('../modules/logger');
+const { COLORS } = require('../utils/embeds');
 
 module.exports = {
   name: 'guildMemberAdd',
@@ -32,7 +33,7 @@ module.exports = {
         { name: 'User ID', value: `\`${member.id}\``, inline: true },
         { name: 'Usia Akun', value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true }
       ],
-      color: 0x57F287,
+      color: COLORS.SUCCESS,
       author: member.user
     });
   }

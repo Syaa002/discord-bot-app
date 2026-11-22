@@ -57,7 +57,7 @@ module.exports = {
         category: 'Moderasi',
         title: 'Bulk Delete Pesan',
         description: `Sebanyak **${deleted.size}** pesan telah dihapus di ${message.channel} oleh ${message.author}.`,
-        color: 0xFEE75C,
+        color: 0xFFB703,
         author: message.author
       });
     } catch (err) {
@@ -92,7 +92,7 @@ module.exports = {
         category: 'Moderasi',
         title: 'Bulk Delete Pesan',
         description: `Sebanyak **${deleted.size}** pesan telah dihapus di ${interaction.channel} oleh ${interaction.user}.`,
-        color: 0xFEE75C,
+        color: 0xFFB703,
         author: interaction.user
       });
     } catch (err) {

@@ -1,4 +1,5 @@
 const { sendLog } = require('../modules/logger');
+const { COLORS } = require('../utils/embeds');
 
 module.exports = {
   name: 'messageDelete',
@@ -22,7 +23,7 @@ module.exports = {
       fields: [
         { name: 'Isi Pesan', value: message.content ? (message.content.length > 1024 ? `${message.content.substring(0, 1020)}...` : message.content) : '*[Media/Embed]*' }
       ],
-      color: 0xED4245,
+      color: COLORS.ERROR,
       author: message.author
     });
   }

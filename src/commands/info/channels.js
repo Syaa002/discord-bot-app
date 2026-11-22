@@ -18,7 +18,7 @@ module.exports = {
     const categories = message.guild.channels.cache.filter(c => c.type === ChannelType.GuildCategory).size;
 
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle(`💬 Statistik Saluran Server: ${message.guild.name}`)
       .addFields(
         { name: '📁 Kategori', value: `**${categories}** kategori`, inline: true },
@@ -37,7 +37,7 @@ module.exports = {
     const categories = interaction.guild.channels.cache.filter(c => c.type === ChannelType.GuildCategory).size;
 
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle(`💬 Statistik Saluran Server: ${interaction.guild.name}`)
       .addFields(
         { name: '📁 Kategori', value: `**${categories}** kategori`, inline: true },

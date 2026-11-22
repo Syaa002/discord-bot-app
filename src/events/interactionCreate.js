@@ -2,7 +2,7 @@ const { EmbedBuilder } = require('discord.js');
 const { handleVoiceInteraction, handleVoiceModalAndSelect } = require('../modules/voiceRooms');
 const { handleTicketInteraction } = require('../modules/tickets');
 const { handleGiveawayInteraction } = require('../modules/giveaways');
-const { errorEmbed, successEmbed } = require('../utils/embeds');
+const { errorEmbed, successEmbed, COLORS } = require('../utils/embeds');
 
 module.exports = {
   name: 'interactionCreate',
@@ -46,7 +46,7 @@ module.exports = {
     // ===================================================================
     if (interaction.isStringSelectMenu() && interaction.customId === 'help_select_category') {
       const selected = interaction.values[0];
-      const embed = new EmbedBuilder().setColor(0x5865F2);
+      const embed = new EmbedBuilder().setColor(COLORS.PRIMARY);
 
       if (selected === 'help_mod') {
         embed.setTitle('🛡️ Perintah Moderasi & Keamanan')

@@ -36,7 +36,7 @@ module.exports = {
     const description = args.slice(2).join(' ');
 
     const embed = new EmbedBuilder()
-      .setColor(role.color || 0x5865F2)
+      .setColor(role.color || 0xFF758F)
       .setTitle(`🎭 Ambil Role: ${role.name}`)
       .setDescription(`${description}\n\n👉 Klik tombol di bawah untuk **mengambil** atau **melepas** role ${role}.`)
       .setTimestamp();
@@ -57,7 +57,7 @@ module.exports = {
     const description = interaction.options.getString('description');
 
     const embed = new EmbedBuilder()
-      .setColor(role.color || 0x5865F2)
+      .setColor(role.color || 0xFF758F)
       .setTitle(`🎭 Ambil Role: ${role.name}`)
       .setDescription(`${description}\n\n👉 Klik tombol di bawah untuk **mengambil** atau **melepas** role ${role}.`)
       .setTimestamp();

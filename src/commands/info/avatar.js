@@ -18,7 +18,7 @@ module.exports = {
     const avatarUrl = targetUser.displayAvatarURL({ size: 1024, extension: 'png' });
 
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle(`🖼️ Avatar: ${targetUser.tag}`)
       .setImage(avatarUrl)
       .setDescription(`[Unduh Avatar HD](${avatarUrl})`);
@@ -31,7 +31,7 @@ module.exports = {
     const avatarUrl = targetUser.displayAvatarURL({ size: 1024, extension: 'png' });
 
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle(`🖼️ Avatar: ${targetUser.tag}`)
       .setImage(avatarUrl)
       .setDescription(`[Unduh Avatar HD](${avatarUrl})`);

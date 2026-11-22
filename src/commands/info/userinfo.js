@@ -20,7 +20,7 @@ module.exports = {
     const roles = member ? member.roles.cache.filter(r => r.id !== message.guild.id).map(r => r.toString()).join(', ') || 'Tidak ada' : 'Bukan member server ini';
 
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle(`👤 Informasi Pengguna: ${targetUser.tag}`)
       .setThumbnail(targetUser.displayAvatarURL({ size: 1024 }))
       .addFields(
@@ -42,7 +42,7 @@ module.exports = {
     const roles = member ? member.roles.cache.filter(r => r.id !== interaction.guild.id).map(r => r.toString()).join(', ') || 'Tidak ada' : 'Bukan member server ini';
 
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle(`👤 Informasi Pengguna: ${targetUser.tag}`)
       .setThumbnail(targetUser.displayAvatarURL({ size: 1024 }))
       .addFields(

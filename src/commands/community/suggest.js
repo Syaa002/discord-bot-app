@@ -21,7 +21,7 @@ module.exports = {
     const suggestChannel = message.guild.channels.cache.find(c => c.name.includes('suggest') || c.name.includes('saran')) || message.channel;
 
     const embed = new EmbedBuilder()
-      .setColor(0xFEE75C)
+      .setColor(0xFFB703)
       .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() })
       .setTitle('💡 Saran Komunitas Baru')
       .setDescription(idea)
@@ -42,7 +42,7 @@ module.exports = {
     const suggestChannel = interaction.guild.channels.cache.find(c => c.name.includes('suggest') || c.name.includes('saran')) || interaction.channel;
 
     const embed = new EmbedBuilder()
-      .setColor(0xFEE75C)
+      .setColor(0xFFB703)
       .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
       .setTitle('💡 Saran Komunitas Baru')
       .setDescription(idea)

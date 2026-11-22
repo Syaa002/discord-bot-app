@@ -17,7 +17,7 @@ module.exports = {
     const owner = await guild.fetchOwner();
 
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle(`🏰 Informasi Server: ${guild.name}`)
       .setThumbnail(guild.iconURL({ size: 1024 }) || null)
       .addFields(
@@ -40,7 +40,7 @@ module.exports = {
     const owner = await guild.fetchOwner();
 
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle(`🏰 Informasi Server: ${guild.name}`)
       .setThumbnail(guild.iconURL({ size: 1024 }) || null)
       .addFields(

@@ -19,7 +19,7 @@ module.exports = {
 
   async execute(message) {
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle('📖 Panduan & Bantuan Discord Bot')
       .setDescription(
         'Selamat datang di pusat bantuan bot!\n' +
@@ -52,7 +52,7 @@ module.exports = {
 
   async executeSlash(interaction) {
     const embed = new EmbedBuilder()
-      .setColor(0x5865F2)
+      .setColor(0xFF758F)
       .setTitle('📖 Panduan & Bantuan Discord Bot')
       .setDescription(
         'Selamat datang di pusat bantuan bot!\n' +

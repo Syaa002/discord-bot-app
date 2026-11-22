@@ -32,7 +32,7 @@ module.exports = {
         category: 'Moderasi',
         title: isUnlock ? 'Channel Di-unlock' : 'Channel Di-lockdown',
         description: `Channel ${targetChannel} telah ${isUnlock ? 'dibuka' : 'dikunci'} oleh ${message.author}.`,
-        color: isUnlock ? 0x57F287 : 0xED4245,
+        color: isUnlock ? 0xFF4D6D : 0xEF233C,
         author: message.author
       });
     } catch (err) {
@@ -56,7 +56,7 @@ module.exports = {
         category: 'Moderasi',
         title: isUnlock ? 'Channel Di-unlock' : 'Channel Di-lockdown',
         description: `Channel ${targetChannel} telah ${isUnlock ? 'dibuka' : 'dikunci'} oleh ${interaction.user}.`,
-        color: isUnlock ? 0x57F287 : 0xED4245,
+        color: isUnlock ? 0xFF4D6D : 0xEF233C,
         author: interaction.user
       });
     } catch (err) {

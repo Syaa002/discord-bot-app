@@ -17,7 +17,7 @@ module.exports = {
     try {
       const audit = await message.guild.fetchAuditLogs({ limit: 10 });
       const embed = new EmbedBuilder()
-        .setColor(0x5865F2)
+        .setColor(0xFF758F)
         .setTitle(`📜 10 Aksi Audit Log Terakhir: ${message.guild.name}`)
         .setTimestamp();
 
@@ -40,7 +40,7 @@ module.exports = {
     try {
       const audit = await interaction.guild.fetchAuditLogs({ limit: 10 });
       const embed = new EmbedBuilder()
-        .setColor(0x5865F2)
+        .setColor(0xFF758F)
         .setTitle(`📜 10 Aksi Audit Log Terakhir: ${interaction.guild.name}`)
         .setTimestamp();
 

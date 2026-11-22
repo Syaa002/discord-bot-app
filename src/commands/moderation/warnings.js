@@ -29,7 +29,7 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setColor(0xFEE75C)
+      .setColor(0xFFB703)
       .setTitle(`⚠️ Riwayat Peringatan: ${targetUser.tag}`)
       .setDescription(`Total Peringatan: **${userWarns.length}**`)
       .setThumbnail(targetUser.displayAvatarURL());
@@ -54,7 +54,7 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setColor(0xFEE75C)
+      .setColor(0xFFB703)
       .setTitle(`⚠️ Riwayat Peringatan: ${targetUser.tag}`)
       .setDescription(`Total Peringatan: **${userWarns.length}**`)
       .setThumbnail(targetUser.displayAvatarURL());
