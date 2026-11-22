@@ -862,6 +862,48 @@
             </div>
             <button id="btnSaveGeneralSettings" class="btn-zt-primary" style="width: auto;">SIMPAN PENGATURAN</button>
           </div>
+
+          <!-- MANAJEMEN PERINTAH BOT (DISABLE / ENABLE COMMANDS) -->
+          <div class="card" style="margin-top: 24px;">
+            <div class="card-header" style="justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+              <h3 class="card-title"><span>🛡️</span> Manajemen Perintah Bot (Disable / Enable)</h3>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span id="cmdCountStats" class="zt-badge" style="background: rgba(0, 245, 212, 0.15); color: var(--zt-cyan);">Memuat...</span>
+              </div>
+            </div>
+            <p style="font-size: 13px; color: var(--zt-text-muted); margin-bottom: 16px;">
+              Administrator dapat menonaktifkan perintah tertentu agar member tidak dapat menggunakannya di server ini. Perintah inti sistem diberi tanda <strong style="color: var(--zt-pink);">Terkunci 🔒</strong> dan tidak dapat dimatikan demi stabilitas dan keamanan bot.
+            </p>
+
+            <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+              <input type="text" id="cmdSearchInput" class="form-input" style="max-width: 280px; padding: 8px 14px;" placeholder="🔍 Cari nama perintah...">
+              <select id="cmdCategoryFilter" class="form-input" style="max-width: 200px; padding: 8px 14px;">
+                <option value="all">Semua Kategori</option>
+                <option value="moderation">🛡️ Moderasi</option>
+                <option value="info">ℹ️ Informasi</option>
+                <option value="community">🧰 Komunitas</option>
+                <option value="panels">🎛️ Panel & Sistem</option>
+                <option value="admin">⚙️ Admin / Developer</option>
+              </select>
+            </div>
+
+            <div class="feature-banners-table-wrapper" style="max-height: 480px; overflow-y: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width: 180px;">Nama Perintah</th>
+                    <th style="width: 130px;">Kategori</th>
+                    <th>Deskripsi</th>
+                    <th style="width: 130px;">Status</th>
+                    <th style="width: 140px; text-align: center;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="commandsTableBody">
+                  <tr><td colspan="5" style="text-align: center; color: var(--zt-text-muted);">Memuat daftar perintah...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </section>
 
       </main>

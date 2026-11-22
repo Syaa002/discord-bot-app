@@ -291,6 +291,14 @@ function startWebServer(client) {
             assignable: botHighestPos > r.position && !r.managed
           }));
 
+        const protectedCmds = ['cmd', 'command', 'commands', 'help', 'config', 'eval', 'reload', 'kill', 'sync', 'backup', 'whitelist'];
+        const botCommands = client.commands ? Array.from(client.commands.values()).map(c => ({
+          name: c.name,
+          description: c.description || '',
+          category: c.category || 'other',
+          protected: protectedCmds.includes(c.name.toLowerCase())
+        })) : [];
+
         // Normalisasi autoRole config
         const rawAutoRole = guildData.autoRole;
         const normalizedAutoRole = typeof rawAutoRole === 'string'
@@ -314,6 +322,7 @@ function startWebServer(client) {
           icon: guild.iconURL() || '',
           channels,
           roles,
+          commands: botCommands,
           botInfo: {
             highestRoleName: botHighestName,
             highestRolePosition: botHighestPos,
@@ -322,6 +331,7 @@ function startWebServer(client) {
           },
           config: {
             ...guildData,
+            disabledCommands: Array.isArray(guildData.disabledCommands) ? guildData.disabledCommands : [],
             banners: guildData.banners || {
               default: null,
               help: null,
@@ -342,6 +352,40 @@ function startWebServer(client) {
             endedGiveaways: guildData.endedGiveaways || {},
             closedTickets: guildData.closedTickets || []
           }
+        });
+      }
+
+      // POST /api/guild/:id/commands/toggle
+      if (req.method === 'POST' && pathname.match(/^\/api\/guild\/[0-9]+\/commands\/toggle$/)) {
+        const guildId = pathname.split('/')[3];
+        const body = await getRequestBody(req);
+        const commandName = (body.command || '').trim().toLowerCase();
+        const enabled = Boolean(body.enabled);
+
+        const protectedCmds = ['cmd', 'command', 'commands', 'help', 'config', 'eval', 'reload', 'kill', 'sync', 'backup', 'whitelist'];
+        if (protectedCmds.includes(commandName)) {
+          return sendJson(res, 400, { error: `Perintah '${commandName}' adalah perintah inti sistem dan tidak dapat dinonaktifkan.` });
+        }
+
+        let updatedDisabled = [];
+        db.updateGuild(guildId, data => {
+          if (!Array.isArray(data.disabledCommands)) data.disabledCommands = [];
+          if (!enabled) {
+            if (!data.disabledCommands.includes(commandName)) {
+              data.disabledCommands.push(commandName);
+            }
+          } else {
+            data.disabledCommands = data.disabledCommands.filter(c => c !== commandName);
+          }
+          updatedDisabled = data.disabledCommands;
+        });
+
+        return sendJson(res, 200, {
+          success: true,
+          command: commandName,
+          enabled,
+          disabledCommands: updatedDisabled,
+          message: enabled ? `Perintah '!${commandName}' berhasil diaktifkan kembali.` : `Perintah '!${commandName}' berhasil dinonaktifkan.`
         });
       }
 

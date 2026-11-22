@@ -33,7 +33,15 @@ module.exports = {
     const command = client.commands.get(commandName) || client.commands.find(c => c.aliases && c.aliases.includes(commandName));
     if (!command) return;
 
-    // 3. Cek Status Blacklist User
+    // 3. Cek Status Perintah Dinonaktifkan (Disable Command)
+    const disabledCommands = Array.isArray(guildData.disabledCommands) ? guildData.disabledCommands : [];
+    if (disabledCommands.includes(command.name.toLowerCase())) {
+      return message.reply({
+        embeds: [errorEmbed('Perintah Dinonaktifkan', `Perintah \`${prefix}${command.name}\` sedang dinonaktifkan oleh administrator di server ini.`)]
+      }).then(msg => setTimeout(() => msg.delete().catch(() => {}), 6000));
+    }
+
+    // 4. Cek Status Blacklist User
     const blacklistInfo = isBlacklisted(message.guild.id, message.author.id);
     if (blacklistInfo) {
       return message.reply({

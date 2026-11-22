@@ -235,6 +235,11 @@ async function loadGuildDetails(guildId) {
     // ===================================================================
     renderBanners(config.banners || {});
 
+    // ===================================================================
+    // MANAJEMEN PERINTAH (DISABLE / ENABLE)
+    // ===================================================================
+    renderCommandsManager(data.commands || [], config.disabledCommands || []);
+
   } catch (err) {
     console.error('Error loading guild details:', err);
   }
@@ -1267,6 +1272,110 @@ window.deleteFeatureBanner = async function(featureKey) {
     showToast('Terjadi kesalahan saat mereset banner fitur.', true);
   }
 };
+
+// ===================================================================
+// MANAJEMEN PERINTAH BOT (DISABLE / ENABLE)
+// ===================================================================
+let allBotCommands = [];
+let currentDisabledCommands = [];
+
+function renderCommandsManager(commands, disabledList) {
+  if (commands && commands.length > 0) allBotCommands = commands;
+  if (disabledList) currentDisabledCommands = disabledList;
+
+  const searchVal = (document.getElementById('cmdSearchInput')?.value || '').toLowerCase().trim();
+  const categoryVal = document.getElementById('cmdCategoryFilter')?.value || 'all';
+
+  const statsBadge = document.getElementById('cmdCountStats');
+  const tbody = document.getElementById('commandsTableBody');
+  if (!tbody) return;
+
+  const total = allBotCommands.length;
+  const disabledCount = currentDisabledCommands.length;
+  const activeCount = Math.max(0, total - disabledCount);
+
+  if (statsBadge) {
+    statsBadge.innerText = `${activeCount} Aktif • ${disabledCount} Nonaktif`;
+  }
+
+  let filtered = allBotCommands.filter(c => {
+    const matchesSearch = !searchVal || c.name.toLowerCase().includes(searchVal) || (c.description || '').toLowerCase().includes(searchVal);
+    const matchesCat = categoryVal === 'all' || c.category === categoryVal;
+    return matchesSearch && matchesCat;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--zt-text-muted); padding: 20px;">Tidak ada perintah yang sesuai kriteria pencarian.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(c => {
+    const isProtected = Boolean(c.protected);
+    const isDisabled = currentDisabledCommands.includes(c.name.toLowerCase());
+
+    let statusHtml = '';
+    let actionBtnHtml = '';
+
+    if (isProtected) {
+      statusHtml = '<span class="zt-badge" style="background: rgba(255,117,143,0.15); color: var(--zt-pink);">Terkunci 🔒</span>';
+      actionBtnHtml = '<span style="font-size: 11px; color: var(--zt-text-muted);">Sistem Inti</span>';
+    } else if (isDisabled) {
+      statusHtml = '<span class="zt-badge" style="background: rgba(239,35,60,0.2); color: var(--zt-red-bright);">Nonaktif ❌</span>';
+      actionBtnHtml = `<button class="btn-zt-primary" style="padding: 5px 14px; font-size: 11px; width: auto;" onclick="toggleCommandState('${c.name}', true)">Aktifkan</button>`;
+    } else {
+      statusHtml = '<span class="zt-badge" style="background: rgba(0,245,212,0.15); color: var(--zt-cyan);">Aktif ✅</span>';
+      actionBtnHtml = `<button class="btn-logout" style="padding: 5px 14px; font-size: 11px; border-radius: 6px;" onclick="toggleCommandState('${c.name}', false)">Matikan</button>`;
+    }
+
+    return `
+      <tr>
+        <td><strong>!${c.name}</strong> <span style="font-size: 11px; color: var(--zt-text-muted);">(/${c.name})</span></td>
+        <td><span class="zt-badge" style="background: rgba(255,255,255,0.06); color: var(--zt-text-muted); font-size: 11px;">${c.category || 'other'}</span></td>
+        <td style="font-size: 12px; color: var(--zt-text-main);">${c.description || '-'}</td>
+        <td>${statusHtml}</td>
+        <td style="text-align: center;">${actionBtnHtml}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+window.toggleCommandState = async function(commandName, enable) {
+  if (!currentGuildId) return showToast('Pilih server terlebih dahulu!', true);
+
+  try {
+    const res = await fetch(`/api/guild/${currentGuildId}/commands/toggle`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command: commandName, enabled: enable })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(data.message);
+      if (Array.isArray(data.disabledCommands)) {
+        currentDisabledCommands = data.disabledCommands;
+      } else {
+        if (enable) {
+          currentDisabledCommands = currentDisabledCommands.filter(c => c !== commandName.toLowerCase());
+        } else {
+          if (!currentDisabledCommands.includes(commandName.toLowerCase())) currentDisabledCommands.push(commandName.toLowerCase());
+        }
+      }
+      renderCommandsManager(allBotCommands, currentDisabledCommands);
+    } else {
+      showToast(data.error || 'Gagal mengubah status perintah.', true);
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan saat mengubah status perintah.', true);
+  }
+};
+
+document.getElementById('cmdSearchInput')?.addEventListener('input', () => {
+  renderCommandsManager(allBotCommands, currentDisabledCommands);
+});
+
+document.getElementById('cmdCategoryFilter')?.addEventListener('change', () => {
+  renderCommandsManager(allBotCommands, currentDisabledCommands);
+});
 
 // Presence Controller
 document.getElementById('presenceForm')?.addEventListener('submit', async (e) => {

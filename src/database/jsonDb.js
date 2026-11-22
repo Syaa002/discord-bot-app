@@ -23,6 +23,7 @@ const defaultGuildData = () => ({
   activeGiveaways: {}, // { messageId: { prize, endsAt, winnersCount, hostId, participants: [] } }
   endedGiveaways: {}, // { messageId: { prize, endedAt, winners: [], participants: [] } }
   closedTickets: [], // [ { id, channelName, creatorTag, category, closedBy, closedAt, filename } ]
+  disabledCommands: [], // [ 'commandName1', 'commandName2' ]
   banners: {
     default: null,       // Global Default Banner
     help: null,          // Menu Help

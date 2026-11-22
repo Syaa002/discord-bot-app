@@ -1,4 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
+const db = require('../database/jsonDb');
 const { handleVoiceInteraction, handleVoiceModalAndSelect } = require('../modules/voiceRooms');
 const { handleTicketInteraction } = require('../modules/tickets');
 const { handleGiveawayInteraction } = require('../modules/giveaways');
@@ -15,6 +16,16 @@ module.exports = {
     if (interaction.isChatInputCommand()) {
       const command = client.commands.get(interaction.commandName);
       if (!command || !command.executeSlash) return;
+
+      // Cek Status Perintah Dinonaktifkan
+      const guildData = db.getGuild(interaction.guild.id);
+      const disabledCommands = Array.isArray(guildData.disabledCommands) ? guildData.disabledCommands : [];
+      if (disabledCommands.includes(command.name.toLowerCase())) {
+        return interaction.reply({
+          embeds: [errorEmbed('Perintah Dinonaktifkan', `Perintah \`/${command.name}\` sedang dinonaktifkan oleh administrator di server ini.`)],
+          ephemeral: true
+        });
+      }
 
       // Cek Izin User
       if (command.userPermissions && command.userPermissions.length > 0) {
