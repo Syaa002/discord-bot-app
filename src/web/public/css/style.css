@@ -617,20 +617,34 @@ input:checked + .slider:before {
   color: #FFE8A3;
 }
 
-/* NOTIFICATIONS / TOAST */
+/* NOTIFICATIONS / TOAST (ANIMATED ZERO TWO THEME) */
 .toast {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  padding: 14px 20px;
-  background: var(--zt-bg-card);
+  padding: 14px 22px;
+  background: rgba(19, 21, 31, 0.95);
+  backdrop-filter: blur(12px);
   border: 1px solid var(--zt-pink);
-  box-shadow: 0 5px 25px rgba(255, 117, 143, 0.4);
-  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 117, 143, 0.3);
+  border-radius: 10px;
   color: #FFFFFF;
   font-weight: 600;
-  z-index: 9999;
-  display: none;
+  font-size: 14px;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* REACTION ROLE BUTTON PREVIEW */
@@ -650,4 +664,153 @@ input:checked + .slider:before {
 .btn-preview-Secondary { background: #4E5058; }
 .btn-preview-Success { background: #23A55A; }
 .btn-preview-Danger { background: #F23F43; }
+
+/* MODAL SYSTEM (GIVEAWAY & TRANSCRIPTS) */
+.zt-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 11, 16, 0.85);
+  backdrop-filter: blur(8px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.zt-modal-backdrop.active {
+  display: flex;
+}
+
+.zt-modal {
+  background: var(--zt-bg-card);
+  border: 1px solid var(--zt-border);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 650px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(239, 35, 60, 0.3), 0 0 25px rgba(255, 117, 143, 0.2);
+  animation: modalPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPop {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.zt-modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--zt-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.zt-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.zt-modal-close {
+  background: none;
+  border: none;
+  color: var(--zt-text-muted);
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.zt-modal-close:hover {
+  color: var(--zt-pink);
+}
+
+.zt-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+/* HAMBURGER & MOBILE RESPONSIVENESS */
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: 1px solid var(--zt-border);
+  border-radius: 8px;
+  color: var(--zt-pink);
+  font-size: 20px;
+  padding: 6px 12px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.hamburger-btn:hover {
+  background: rgba(255, 117, 143, 0.15);
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: flex;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: -280px;
+    top: 0;
+    bottom: 0;
+    width: 260px;
+    z-index: 1000;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 10px 0 35px rgba(0, 0, 0, 0.85);
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+  }
+
+  .sidebar-backdrop.active {
+    display: block;
+  }
+
+  .topbar {
+    padding: 12px 16px;
+  }
+
+  .content-body {
+    padding: 16px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar-right {
+    gap: 10px;
+  }
+
+  .bot-status-pill {
+    display: none; /* Sembunyikan pill status di layar sangat kecil agar tidak sempit */
+  }
+}
+
 

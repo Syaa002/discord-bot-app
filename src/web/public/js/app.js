@@ -16,15 +16,31 @@ let autoRoleState = {
 // State Reaction Role Button Builder
 let currentRrButtons = [];
 
-// Tampilkan Toast Notifikasi
+// ===================================================================
+// TOAST NOTIFICATION (ANIMATED ZERO TWO THEME)
+// ===================================================================
+let toastTimeout = null;
 function showToast(message, isError = false) {
   const toast = document.getElementById('toast');
-  toast.innerText = message;
+  const toastMessage = document.getElementById('toastMessage');
+  const toastIcon = document.getElementById('toastIcon');
+
+  if (!toast || !toastMessage) return;
+
+  if (toastTimeout) clearTimeout(toastTimeout);
+
+  toastMessage.innerText = message;
+  toastIcon.innerText = isError ? '❌' : '🌸';
   toast.style.borderColor = isError ? 'var(--zt-red-bright)' : 'var(--zt-pink)';
-  toast.style.display = 'block';
-  setTimeout(() => {
-    toast.style.display = 'none';
-  }, 3500);
+  toast.style.boxShadow = isError
+    ? '0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(239, 35, 60, 0.4)'
+    : '0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(255, 117, 143, 0.4)';
+
+  toast.classList.add('show');
+
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3800);
 }
 
 // Format Detik ke Waktu
@@ -35,7 +51,27 @@ function formatUptime(seconds) {
   return `${d}h ${h}j ${m}m`;
 }
 
-// 1. Inisialisasi Navigasi Tab
+// ===================================================================
+// RESPONSIVE MOBILE SIDEBAR & HAMBURGER
+// ===================================================================
+const mainSidebar = document.getElementById('mainSidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+const btnMenuToggle = document.getElementById('btnMenuToggle');
+
+function toggleMobileSidebar() {
+  if (mainSidebar) mainSidebar.classList.toggle('open');
+  if (sidebarBackdrop) sidebarBackdrop.classList.toggle('active');
+}
+
+function closeMobileSidebar() {
+  if (mainSidebar) mainSidebar.classList.remove('open');
+  if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
+}
+
+btnMenuToggle?.addEventListener('click', toggleMobileSidebar);
+sidebarBackdrop?.addEventListener('click', closeMobileSidebar);
+
+// Navigasi Tab Sidebar
 document.querySelectorAll('.sidebar-link').forEach(link => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
@@ -47,10 +83,17 @@ document.querySelectorAll('.sidebar-link').forEach(link => {
     link.classList.add('active');
     const targetPane = document.getElementById(targetTabId);
     if (targetPane) targetPane.style.display = 'block';
+
+    // Auto-tutup sidebar di layar mobile setelah memilih menu
+    if (window.innerWidth <= 768) {
+      closeMobileSidebar();
+    }
   });
 });
 
-// 2. Fetch Statistik Bot Real-Time
+// ===================================================================
+// STATS & GUILDS LOADER
+// ===================================================================
 async function fetchStats() {
   try {
     const res = await fetch('/api/stats');
@@ -70,7 +113,6 @@ async function fetchStats() {
   }
 }
 
-// 3. Fetch Daftar Server (Guilds)
 async function fetchGuilds() {
   try {
     const res = await fetch('/api/guilds');
@@ -97,7 +139,9 @@ async function fetchGuilds() {
   }
 }
 
-// 4. Muat Rincian Server Tertentu
+// ===================================================================
+// LOAD GUILD DETAILS
+// ===================================================================
 async function loadGuildDetails(guildId) {
   try {
     const res = await fetch(`/api/guild/${guildId}`);
@@ -108,17 +152,20 @@ async function loadGuildDetails(guildId) {
     const roles = data.roles || [];
     const config = data.config || {};
 
-    // Isi Dropdown Saluran Teks & Suara
+    // Saluran Teks, Voice, Kategori
     const textChannels = channels.filter(c => c.type === 0);
     const voiceChannels = channels.filter(c => c.type === 2);
     const categories = channels.filter(c => c.type === 4);
 
+    // Dropdowns
     populateSelect('modLogChannelSelect', textChannels, config.modLogChannel, 'Pilih saluran log...');
     populateSelect('ytAlertChannelSelect', textChannels, null, 'Pilih saluran Discord...');
     populateSelect('tiktokAlertChannelSelect', textChannels, null, 'Pilih saluran Discord...');
     populateSelect('voiceJoinChannelSelect', voiceChannels, config.joinToCreateChannel, 'Pilih saluran suara...');
     populateSelect('voiceInterfaceChannelSelect', textChannels, config.voiceInterfaceChannel, 'Pilih saluran teks (misal: #interface)...');
+    populateSelect('ticketPanelChannelSelect', textChannels, config.ticketPanelChannelId, 'Pilih saluran teks tiket...');
     populateSelect('ticketCategorySelect', categories, config.ticketCategory, 'Pilih kategori tiket...');
+    populateSelect('gwChannelSelect', textChannels, null, 'Pilih saluran Discord...');
     populateSelect('rrChannelSelect', textChannels, null, 'Pilih saluran tujuan...');
 
     // Status Voice Interface
@@ -133,63 +180,55 @@ async function loadGuildDetails(guildId) {
       }
     }
 
-    // Isi Pengaturan Dasar Server
+    // Pengaturan Dasar Server
     document.getElementById('guildPrefixInput').value = config.prefix || '!';
 
-    // Isi Auto-Mod
+    // Auto-Mod
     const autoMod = config.autoMod || {};
     document.getElementById('togglePhishing').checked = autoMod.antiPhishing !== false;
     document.getElementById('toggleMassMention').checked = autoMod.antiMassMention !== false;
     document.getElementById('toggleInvite').checked = autoMod.antiInvite !== false;
 
-    // Render Tabel YouTube & TikTok Feeds
+    // Feeds: YouTube & TikTok
     renderYtFeeds(config.trackedFeeds?.youtube || [], channels);
     renderTiktokFeeds(config.trackedFeeds?.tiktok || [], channels);
 
     // ===================================================================
-    // INITIALIZE ADVANCED AUTO-ROLE SYSTEM
+    // HIERARKI ROLE BOT REAL-TIME & AUTO-ROLE
     // ===================================================================
     autoRoleState = config.autoRole || { enabled: false, userRoles: [], botRoles: [], delaySeconds: 0 };
 
-    // Tampilkan Info Hierarki Role Bot
     const botInfo = data.botInfo || {};
-    document.getElementById('botHighestRoleLabel').innerText = `${botInfo.highestRoleName || 'Tidak Diketahui'} (Posisi #${botInfo.highestRolePosition || 0})`;
+    const botLabel = document.getElementById('botHighestRoleLabel');
+    if (botLabel) {
+      botLabel.innerText = `${botInfo.highestRoleName || 'Tidak Diketahui'} (Posisi #${botInfo.highestRolePosition ?? 0})`;
+    }
 
     document.getElementById('toggleAutoRoleMaster').checked = autoRoleState.enabled;
     document.getElementById('autoRoleDelaySelect').value = String(autoRoleState.delaySeconds || 0);
 
-    // Isi Dropdown Pilih Role untuk Ditambahkan
     populateRoleAddSelect('selectAddUserRole', roles);
     populateRoleAddSelect('selectAddBotRole', roles);
     populateRoleAddSelect('rrRolePickerSelect', roles);
 
-    // Render Chips Auto-Role
     renderAutoRoleChips();
 
     // ===================================================================
-    // INITIALIZE REACTION ROLE PANELS
+    // REACTION ROLE
     // ===================================================================
     currentRrButtons = [];
     renderRrButtonsPreview();
     renderReactionRolePanels(config.reactionRoles || {}, channels);
 
-    // Render Giveaway
-    const gwContainer = document.getElementById('giveawayListContainer');
-    const activeGw = config.activeGiveaways ? Object.entries(config.activeGiveaways) : [];
-    if (activeGw.length > 0) {
-      gwContainer.innerHTML = activeGw.map(([msgId, gw]) => `
-        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--zt-border); padding: 16px; border-radius: 8px; margin-bottom: 12px;">
-          <h4 style="color: var(--zt-pink);">🎉 ${gw.prize}</h4>
-          <p style="font-size: 13px; color: var(--zt-text-muted);">
-            Peserta: <strong>${gw.participants?.length || 0} orang</strong> | 
-            Pemenang: <strong>${gw.winnersCount}</strong> | 
-            Selesai: <span style="color: var(--zt-cyan);">${new Date(gw.endsAt).toLocaleTimeString()}</span>
-          </p>
-        </div>
-      `).join('');
-    } else {
-      gwContainer.innerHTML = 'Tidak ada giveaway yang sedang berlangsung di server ini.';
-    }
+    // ===================================================================
+    // TIKET TRANSKRIP RIWAYAT
+    // ===================================================================
+    renderTicketTranscripts(config.closedTickets || []);
+
+    // ===================================================================
+    // GIVEAWAY AKTIF
+    // ===================================================================
+    renderGiveaways(config.activeGiveaways || {}, channels);
 
   } catch (err) {
     console.error('Error loading guild details:', err);
@@ -209,7 +248,6 @@ function populateSelect(elemId, items, selectedVal, defaultLabel) {
   });
 }
 
-// Dropdown khusus penambahan role dengan indikator warna & hierarki
 function populateRoleAddSelect(elemId, roles) {
   const elem = document.getElementById(elemId);
   if (!elem) return;
@@ -228,11 +266,13 @@ function populateRoleAddSelect(elemId, roles) {
   });
 }
 
-// Render Badge/Chips untuk User Roles & Bot Roles
+// ===================================================================
+// AUTO-ROLE CHIPS
+// ===================================================================
 function renderAutoRoleChips() {
   const roles = currentGuildData?.roles || [];
 
-  // 1. User Roles Chips
+  // User Roles
   const userContainer = document.getElementById('userRolesChipsContainer');
   if (autoRoleState.userRoles.length === 0) {
     userContainer.innerHTML = '<span style="color: var(--zt-text-muted); font-size: 13px;">Belum ada role member yang dipilih.</span>';
@@ -250,7 +290,7 @@ function renderAutoRoleChips() {
     }).join('');
   }
 
-  // 2. Bot Roles Chips
+  // Bot Roles
   const botContainer = document.getElementById('botRolesChipsContainer');
   if (autoRoleState.botRoles.length === 0) {
     botContainer.innerHTML = '<span style="color: var(--zt-text-muted); font-size: 13px;">Belum ada role bot yang dipilih.</span>';
@@ -269,7 +309,6 @@ function renderAutoRoleChips() {
   }
 }
 
-// Tambah / Hapus Role User
 window.removeUserRole = function(roleId) {
   autoRoleState.userRoles = autoRoleState.userRoles.filter(id => id !== roleId);
   renderAutoRoleChips();
@@ -289,7 +328,6 @@ document.getElementById('btnAddUserRole')?.addEventListener('click', () => {
   select.value = '';
 });
 
-// Tambah / Hapus Role Bot
 window.removeBotRole = function(roleId) {
   autoRoleState.botRoles = autoRoleState.botRoles.filter(id => id !== roleId);
   renderAutoRoleChips();
@@ -309,7 +347,6 @@ document.getElementById('btnAddBotRole')?.addEventListener('click', () => {
   select.value = '';
 });
 
-// Simpan Konfigurasi Lengkap Auto-Role
 document.getElementById('btnSaveAutoRoleConfig')?.addEventListener('click', async () => {
   if (!currentGuildId) return;
 
@@ -328,14 +365,18 @@ document.getElementById('btnSaveAutoRoleConfig')?.addEventListener('click', asyn
       })
     });
     const json = await res.json();
-    showToast(json.message || 'Konfigurasi Auto-Role berhasil disimpan!');
+    if (json.success) {
+      showToast(json.message || 'Konfigurasi Auto-Role berhasil disimpan!');
+    } else {
+      showToast(json.error || 'Gagal menyimpan konfigurasi.', true);
+    }
   } catch {
     showToast('Gagal menyimpan konfigurasi Auto-Role.', true);
   }
 });
 
 // ===================================================================
-// VOICE INTERFACE PANEL SENDER (SEPERTI #INTERFACE)
+// VOICE INTERFACE PANEL
 // ===================================================================
 document.getElementById('btnSendVoiceInterface')?.addEventListener('click', async () => {
   if (!currentGuildId) return;
@@ -356,16 +397,215 @@ document.getElementById('btnSendVoiceInterface')?.addEventListener('click', asyn
     } else {
       showToast(json.error || 'Gagal mengirim panel interface.', true);
     }
-  } catch (err) {
+  } catch {
     showToast('Terjadi kesalahan jaringan saat mengirim panel.', true);
   }
 });
 
 // ===================================================================
+// TIKET: KIRIM PANEL & RIWAYAT TRANSKRIP
+// ===================================================================
+document.getElementById('btnSendTicketPanel')?.addEventListener('click', async () => {
+  if (!currentGuildId) return;
+  const channelId = document.getElementById('ticketPanelChannelSelect').value;
+  if (!channelId) return showToast('Pilih saluran Discord tujuan untuk panel tiket!', true);
+
+  try {
+    showToast('Sedang mengirim panel tiket ke Discord...');
+    const res = await fetch(`/api/guild/${currentGuildId}/ticket/send-panel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channelId })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message);
+      loadGuildDetails(currentGuildId);
+    } else {
+      showToast(json.error || 'Gagal mengirim panel tiket.', true);
+    }
+  } catch {
+    showToast('Terjadi kesalahan saat mengirim panel tiket.', true);
+  }
+});
+
+function renderTicketTranscripts(transcripts) {
+  const tbody = document.getElementById('ticketTranscriptsTableBody');
+  if (!tbody) return;
+
+  if (transcripts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--zt-text-muted);">Belum ada riwayat tiket yang ditutup.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = transcripts.map(t => {
+    const dateStr = t.closedAt ? new Date(t.closedAt).toLocaleString('id-ID') : '-';
+    return `
+      <tr>
+        <td><code>#${t.channelName || t.id}</code></td>
+        <td><strong>${t.creatorTag || 'Member'}</strong></td>
+        <td><span class="zt-badge" style="margin: 0;">${t.category || 'Umum'}</span></td>
+        <td><span style="font-size: 12px; color: var(--zt-text-muted);">${dateStr}</span></td>
+        <td>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-zt-primary" onclick="viewTranscript('${t.filename}', '${t.channelName}')" style="padding: 4px 10px; font-size: 11px; width: auto;">Lihat</button>
+            <a href="/api/guild/${currentGuildId}/ticket/transcript/${t.filename}?download=true" class="btn-logout" style="padding: 4px 10px; font-size: 11px; text-decoration: none;">Unduh</a>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+window.viewTranscript = async function(filename, channelName) {
+  try {
+    const res = await fetch(`/api/guild/${currentGuildId}/ticket/transcript/${filename}`);
+    const json = await res.json();
+    if (json.error) return showToast(json.error, true);
+
+    document.getElementById('transcriptModalTitle').innerText = `#${channelName}`;
+    document.getElementById('transcriptContentPre').innerText = json.content || '(Transkrip kosong)';
+    document.getElementById('btnDownloadCurrentTranscript').href = `/api/guild/${currentGuildId}/ticket/transcript/${filename}?download=true`;
+
+    const modal = document.getElementById('modalViewTranscript');
+    if (modal) modal.classList.add('active');
+  } catch {
+    showToast('Gagal memuat isi transkrip.', true);
+  }
+};
+
+window.closeTranscriptModal = function() {
+  const modal = document.getElementById('modalViewTranscript');
+  if (modal) modal.classList.remove('active');
+};
+
+// ===================================================================
+// GIVEAWAY SYSTEM (START, END, REROLL)
+// ===================================================================
+window.openGiveawayModal = function() {
+  const modal = document.getElementById('modalCreateGiveaway');
+  if (modal) modal.classList.add('active');
+};
+
+window.closeGiveawayModal = function() {
+  const modal = document.getElementById('modalCreateGiveaway');
+  if (modal) modal.classList.remove('active');
+};
+
+document.getElementById('btnOpenCreateGiveawayModal')?.addEventListener('click', window.openGiveawayModal);
+
+document.getElementById('formStartGiveaway')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!currentGuildId) return;
+
+  const prize = document.getElementById('gwPrizeInput').value.trim();
+  const duration = document.getElementById('gwDurationInput').value.trim();
+  const winnersCount = document.getElementById('gwWinnersInput').value;
+  const channelId = document.getElementById('gwChannelSelect').value;
+
+  if (!prize || !duration || !channelId) {
+    return showToast('Semua kolom giveaway wajib diisi!', true);
+  }
+
+  try {
+    showToast('Sedang membuat giveaway di Discord...');
+    const res = await fetch(`/api/guild/${currentGuildId}/giveaway/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prize, duration, winnersCount, channelId })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message);
+      closeGiveawayModal();
+      document.getElementById('gwPrizeInput').value = '';
+      loadGuildDetails(currentGuildId);
+    } else {
+      showToast(json.error || 'Gagal memulai giveaway.', true);
+    }
+  } catch {
+    showToast('Terjadi kesalahan saat memulai giveaway.', true);
+  }
+});
+
+function renderGiveaways(activeObj, channels) {
+  const container = document.getElementById('giveawayListContainer');
+  if (!container) return;
+
+  const activeGw = Object.entries(activeObj || {});
+  if (activeGw.length === 0) {
+    container.innerHTML = 'Tidak ada giveaway yang sedang berlangsung di server ini saat ini.';
+    return;
+  }
+
+  container.innerHTML = activeGw.map(([msgId, gw]) => {
+    const chName = channels.find(c => c.id === gw.channelId)?.name || gw.channelName || gw.channelId;
+    const participantsCount = gw.participants ? gw.participants.length : 0;
+    const endsText = new Date(gw.endsAt).toLocaleString('id-ID');
+
+    return `
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--zt-border); padding: 18px; border-radius: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <h4 style="color: var(--zt-pink); font-size: 16px; margin-bottom: 6px;">🎉 ${gw.prize}</h4>
+          <p style="font-size: 13px; color: var(--zt-text-muted); line-height: 1.6;">
+            Saluran: <strong>#${chName}</strong> | 
+            Peserta: <strong style="color: #fff;">${participantsCount} orang</strong> | 
+            Pemenang: <strong>${gw.winnersCount}</strong><br>
+            Berakhir: <span style="color: var(--zt-cyan);">${endsText}</span>
+          </p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn-logout" onclick="endGiveawayNow('${msgId}')" style="padding: 8px 16px; font-size: 12px;">🛑 Akhiri Sekarang</button>
+          <button type="button" class="btn-zt-primary" onclick="rerollGiveawayNow('${msgId}')" style="padding: 8px 16px; font-size: 12px; width: auto;">🎲 Reroll</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.endGiveawayNow = async function(messageId) {
+  if (!confirm('Akhiri giveaway ini sekarang dan langsung tentukan pemenang?')) return;
+  try {
+    const res = await fetch(`/api/guild/${currentGuildId}/giveaway/end`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageId })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message);
+      loadGuildDetails(currentGuildId);
+    } else {
+      showToast(json.error || 'Gagal mengakhiri giveaway.', true);
+    }
+  } catch {
+    showToast('Terjadi kesalahan saat mengakhiri giveaway.', true);
+  }
+};
+
+window.rerollGiveawayNow = async function(messageId) {
+  if (!confirm('Pilih ulang pemenang baru secara acak untuk giveaway ini?')) return;
+  try {
+    const res = await fetch(`/api/guild/${currentGuildId}/giveaway/reroll`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageId })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message);
+      loadGuildDetails(currentGuildId);
+    } else {
+      showToast(json.error || 'Gagal me-reroll giveaway.', true);
+    }
+  } catch {
+    showToast('Terjadi kesalahan saat me-reroll giveaway.', true);
+  }
+};
+
+// ===================================================================
 // REACTION ROLE SYSTEM
 // ===================================================================
-
-// Auto-fill label ketika role dipilih
 document.getElementById('rrRolePickerSelect')?.addEventListener('change', (e) => {
   const roleId = e.target.value;
   const labelInput = document.getElementById('rrButtonLabelInput');
@@ -375,7 +615,6 @@ document.getElementById('rrRolePickerSelect')?.addEventListener('change', (e) =>
   }
 });
 
-// Tambah tombol ke daftar panel builder
 document.getElementById('btnAddButtonToRr')?.addEventListener('click', () => {
   const roleSelect = document.getElementById('rrRolePickerSelect');
   const roleId = roleSelect.value;
@@ -407,13 +646,11 @@ document.getElementById('btnAddButtonToRr')?.addEventListener('click', () => {
 
   renderRrButtonsPreview();
 
-  // Reset input
   roleSelect.value = '';
   labelInput.value = '';
   document.getElementById('rrButtonEmojiInput').value = '';
 });
 
-// Render Preview Tombol yang dirancang
 function renderRrButtonsPreview() {
   const container = document.getElementById('rrButtonsListContainer');
   if (!container) return;
@@ -437,7 +674,6 @@ window.removeRrButton = function(index) {
   renderRrButtonsPreview();
 };
 
-// Kirim Panel Reaction Role ke Discord
 document.getElementById('btnSubmitReactionRolePanel')?.addEventListener('click', async () => {
   if (!currentGuildId) return;
 
@@ -475,7 +711,6 @@ document.getElementById('btnSubmitReactionRolePanel')?.addEventListener('click',
   }
 });
 
-// Render Daftar Panel Reaction Role Aktif
 function renderReactionRolePanels(panelsObj, channels) {
   const tbody = document.getElementById('rrPanelsTableBody');
   if (!tbody) return;
@@ -493,7 +728,7 @@ function renderReactionRolePanels(panelsObj, channels) {
       <tr>
         <td>#${chName}</td>
         <td><strong>${p.title || 'Reaction Role'}</strong></td>
-        <td><span class="zt-badge">${btnCount} Tombol</span></td>
+        <td><span class="zt-badge" style="margin: 0;">${btnCount} Tombol</span></td>
         <td><code>${msgId}</code></td>
         <td>
           <button class="btn-logout" onclick="deleteReactionRolePanel('${msgId}')" style="padding: 4px 10px; font-size: 11px;">HAPUS</button>
@@ -522,11 +757,12 @@ window.deleteReactionRolePanel = async function(messageId) {
 // ===================================================================
 // FEEDS: YOUTUBE & TIKTOK
 // ===================================================================
-
 function renderYtFeeds(feeds, channels) {
   const tbody = document.getElementById('ytFeedTableBody');
+  if (!tbody) return;
+
   if (feeds.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--zt-text-muted);">Belum ada feed YouTube yang dipantau.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--zt-text-muted);">Belum ada feed YouTube.</td></tr>';
     return;
   }
 
@@ -536,7 +772,6 @@ function renderYtFeeds(feeds, channels) {
       <tr>
         <td><code>${feed.channelId}</code></td>
         <td>#${channelName}</td>
-        <td><span style="color: var(--zt-cyan); font-weight: 700;">● Aktif</span></td>
         <td>
           <button class="btn-logout" onclick="deleteYtFeed('${feed.channelId}')" style="padding: 4px 10px; font-size: 11px;">HAPUS</button>
         </td>
@@ -550,7 +785,7 @@ function renderTiktokFeeds(feeds, channels) {
   if (!tbody) return;
 
   if (feeds.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--zt-text-muted);">Belum ada feed TikTok yang dipantau.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--zt-text-muted);">Belum ada feed TikTok.</td></tr>';
     return;
   }
 
@@ -560,7 +795,6 @@ function renderTiktokFeeds(feeds, channels) {
       <tr>
         <td><strong>@${feed.username}</strong></td>
         <td>#${channelName}</td>
-        <td><span style="color: var(--zt-cyan); font-weight: 700;">● Aktif</span></td>
         <td>
           <button class="btn-logout" onclick="deleteTiktokFeed('${feed.username}')" style="padding: 4px 10px; font-size: 11px;">HAPUS</button>
         </td>
@@ -569,82 +803,6 @@ function renderTiktokFeeds(feeds, channels) {
   }).join('');
 }
 
-// 5. Simpan Konfigurasi Umum Server (Prefix & Mod-Log)
-document.getElementById('btnSaveGeneralSettings')?.addEventListener('click', async () => {
-  if (!currentGuildId) return;
-  const prefix = document.getElementById('guildPrefixInput').value;
-  const modLogChannel = document.getElementById('modLogChannelSelect').value;
-
-  try {
-    const res = await fetch(`/api/guild/${currentGuildId}/config`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prefix, modLogChannel })
-    });
-    const json = await res.json();
-    showToast(json.message || 'Pengaturan berhasil disimpan!');
-  } catch {
-    showToast('Gagal menyimpan pengaturan.', true);
-  }
-});
-
-// 6. Simpan Auto-Mod
-document.getElementById('btnSaveAutoMod')?.addEventListener('click', async () => {
-  if (!currentGuildId) return;
-  const antiPhishing = document.getElementById('togglePhishing').checked;
-  const antiMassMention = document.getElementById('toggleMassMention').checked;
-  const antiInvite = document.getElementById('toggleInvite').checked;
-
-  try {
-    const res = await fetch(`/api/guild/${currentGuildId}/automod`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ antiPhishing, antiMassMention, antiInvite })
-    });
-    const json = await res.json();
-    showToast(json.message || 'Proteksi Auto-Mod disimpan!');
-  } catch {
-    showToast('Gagal menyimpan konfigurasi Auto-Mod.', true);
-  }
-});
-
-// 7. Simpan Voice Join-to-Create
-document.getElementById('btnSaveVoiceChannel')?.addEventListener('click', async () => {
-  if (!currentGuildId) return;
-  const joinToCreateChannel = document.getElementById('voiceJoinChannelSelect').value;
-
-  try {
-    const res = await fetch(`/api/guild/${currentGuildId}/config`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ joinToCreateChannel })
-    });
-    const json = await res.json();
-    showToast(json.message || 'Saluran Voice disimpan!');
-  } catch {
-    showToast('Gagal menyimpan saluran voice.', true);
-  }
-});
-
-// 8. Simpan Tiket Kategori
-document.getElementById('btnSaveTicketConfig')?.addEventListener('click', async () => {
-  if (!currentGuildId) return;
-  const ticketCategory = document.getElementById('ticketCategorySelect').value;
-
-  try {
-    const res = await fetch(`/api/guild/${currentGuildId}/config`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ticketCategory })
-    });
-    const json = await res.json();
-    showToast(json.message || 'Kategori tiket disimpan!');
-  } catch {
-    showToast('Gagal menyimpan konfigurasi tiket.', true);
-  }
-});
-
-// 9. Tambah Feed YouTube
 document.getElementById('formAddYtFeed')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!currentGuildId) return;
@@ -659,15 +817,18 @@ document.getElementById('formAddYtFeed')?.addEventListener('submit', async (e) =
       body: JSON.stringify({ channelId, alertChannelId })
     });
     const json = await res.json();
-    showToast(json.message || 'Feed YouTube ditambahkan!');
-    document.getElementById('ytChannelIdInput').value = '';
-    loadGuildDetails(currentGuildId);
+    if (json.success) {
+      showToast(json.message);
+      document.getElementById('ytChannelIdInput').value = '';
+      loadGuildDetails(currentGuildId);
+    } else {
+      showToast(json.error || 'Gagal menambahkan YouTube.', true);
+    }
   } catch {
-    showToast('Gagal menambahkan feed.', true);
+    showToast('Gagal menambahkan feed YouTube.', true);
   }
 });
 
-// Hapus Feed YouTube
 window.deleteYtFeed = async function(channelId) {
   if (!confirm(`Hapus pemantauan untuk channel YouTube ${channelId}?`)) return;
   try {
@@ -680,11 +841,10 @@ window.deleteYtFeed = async function(channelId) {
     showToast(json.message || 'Feed dihapus!');
     loadGuildDetails(currentGuildId);
   } catch {
-    showToast('Gagal menghapus feed.', true);
+    showToast('Gagal menghapus feed YouTube.', true);
   }
 };
 
-// 10. Tambah Feed TikTok
 document.getElementById('formAddTiktokFeed')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!currentGuildId) return;
@@ -711,7 +871,6 @@ document.getElementById('formAddTiktokFeed')?.addEventListener('submit', async (
   }
 });
 
-// Hapus Feed TikTok
 window.deleteTiktokFeed = async function(username) {
   if (!confirm(`Hapus pemantauan untuk akun TikTok @${username}?`)) return;
   try {
@@ -728,7 +887,97 @@ window.deleteTiktokFeed = async function(username) {
   }
 };
 
-// 11. Ubah Status Presence Bot
+// ===================================================================
+// PENGATURAN UMUM SERVER & AUTO-MOD
+// ===================================================================
+document.getElementById('btnSaveGeneralSettings')?.addEventListener('click', async () => {
+  if (!currentGuildId) return;
+  const prefix = document.getElementById('guildPrefixInput').value;
+  const modLogChannel = document.getElementById('modLogChannelSelect').value;
+
+  try {
+    const res = await fetch(`/api/guild/${currentGuildId}/config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prefix, modLogChannel })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message || 'Pengaturan berhasil disimpan!');
+    } else {
+      showToast(json.error || 'Gagal menyimpan pengaturan.', true);
+    }
+  } catch {
+    showToast('Gagal menyimpan pengaturan.', true);
+  }
+});
+
+document.getElementById('btnSaveAutoMod')?.addEventListener('click', async () => {
+  if (!currentGuildId) return;
+  const antiPhishing = document.getElementById('togglePhishing').checked;
+  const antiMassMention = document.getElementById('toggleMassMention').checked;
+  const antiInvite = document.getElementById('toggleInvite').checked;
+
+  try {
+    const res = await fetch(`/api/guild/${currentGuildId}/automod`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ antiPhishing, antiMassMention, antiInvite })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message || 'Proteksi Auto-Mod berhasil disimpan!');
+    } else {
+      showToast(json.error || 'Gagal menyimpan Auto-Mod.', true);
+    }
+  } catch {
+    showToast('Gagal menyimpan konfigurasi Auto-Mod.', true);
+  }
+});
+
+document.getElementById('btnSaveVoiceChannel')?.addEventListener('click', async () => {
+  if (!currentGuildId) return;
+  const joinToCreateChannel = document.getElementById('voiceJoinChannelSelect').value;
+
+  try {
+    const res = await fetch(`/api/guild/${currentGuildId}/config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ joinToCreateChannel })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message || 'Saluran Voice berhasil disimpan!');
+    } else {
+      showToast(json.error || 'Gagal menyimpan saluran voice.', true);
+    }
+  } catch {
+    showToast('Gagal menyimpan saluran voice.', true);
+  }
+});
+
+document.getElementById('btnSaveTicketConfig')?.addEventListener('click', async () => {
+  if (!currentGuildId) return;
+  const ticketCategory = document.getElementById('ticketCategorySelect').value;
+
+  try {
+    const res = await fetch(`/api/guild/${currentGuildId}/config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticketCategory })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showToast(json.message || 'Kategori tiket berhasil disimpan!');
+    } else {
+      showToast(json.error || 'Gagal menyimpan kategori tiket.', true);
+    }
+  } catch {
+    showToast('Gagal menyimpan konfigurasi tiket.', true);
+  }
+});
+
+// Presence Controller
 document.getElementById('presenceForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const activityType = document.getElementById('presenceType').value;
@@ -741,19 +990,23 @@ document.getElementById('presenceForm')?.addEventListener('submit', async (e) =>
       body: JSON.stringify({ activityType, statusText })
     });
     const json = await res.json();
-    showToast(json.message || 'Status bot diperbarui!');
+    if (json.success) {
+      showToast(json.message || 'Status bot berhasil diperbarui!');
+    } else {
+      showToast(json.error || 'Gagal memperbarui status bot.', true);
+    }
   } catch {
-    showToast('Gagal memperbarui status.', true);
+    showToast('Gagal memperbarui status bot.', true);
   }
 });
 
-// 12. Ganti Pilihan Server di Dropdown Topbar
+// Dropdown Ganti Server
 document.getElementById('serverSelect')?.addEventListener('change', (e) => {
   currentGuildId = e.target.value;
   if (currentGuildId) loadGuildDetails(currentGuildId);
 });
 
-// 13. Logout
+// Logout
 document.getElementById('btnLogout')?.addEventListener('click', async () => {
   await fetch('/api/logout', { method: 'POST' });
   window.location.href = '/login';

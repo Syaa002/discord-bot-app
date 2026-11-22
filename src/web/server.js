@@ -12,6 +12,8 @@ const {
 } = require('discord.js');
 const db = require('../database/jsonDb');
 const { sendInterfacePanel } = require('../modules/voiceRooms');
+const { sendTicketPanel, TRANSCRIPTS_DIR } = require('../modules/tickets');
+const { startGiveaway, endGiveaway, rerollGiveaway } = require('../modules/giveaways');
 const { COLORS } = require('../utils/embeds');
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -78,6 +80,18 @@ function getRequestBody(req) {
       }
     });
   });
+}
+
+function parseDuration(str) {
+  const match = String(str).trim().match(/^(\d+)([smhd])?$/i);
+  if (!match) return 3600000; // default 1 jam
+  const num = parseInt(match[1], 10);
+  const unit = (match[2] || 'm').toLowerCase();
+  if (unit === 's') return num * 1000;
+  if (unit === 'm') return num * 60 * 1000;
+  if (unit === 'h') return num * 3600 * 1000;
+  if (unit === 'd') return num * 86400 * 1000;
+  return num * 60 * 1000;
 }
 
 function startWebServer(client) {
@@ -185,9 +199,15 @@ function startWebServer(client) {
         if (!guild) return sendJson(res, 404, { error: 'Guild tidak ditemukan' });
 
         const guildData = db.getGuild(guildId);
-        const botMember = guild.members.me;
+
+        // Ambil botMember secara real-time dari API Discord jika belum tercache
+        let botMember = guild.members.me;
+        if (!botMember) {
+          botMember = await guild.members.fetchMe().catch(() => null);
+        }
+
         const botHighestPos = botMember ? botMember.roles.highest.position : 0;
-        const botHighestName = botMember ? botMember.roles.highest.name : 'Unknown';
+        const botHighestName = botMember ? botMember.roles.highest.name : 'Zero Two Role';
 
         const channels = guild.channels.cache.map(c => ({ id: c.id, name: c.name, type: c.type, parentId: c.parentId }));
         const roles = guild.roles.cache
@@ -227,13 +247,18 @@ function startWebServer(client) {
           roles,
           botInfo: {
             highestRoleName: botHighestName,
-            highestRolePosition: botHighestPos
+            highestRolePosition: botHighestPos,
+            botTag: client.user ? client.user.tag : 'Zero Two',
+            botAvatar: client.user ? client.user.displayAvatarURL() : ''
           },
           config: {
             ...guildData,
             autoRole: normalizedAutoRole,
             trackedFeeds: normalizedFeeds,
-            reactionRoles: guildData.reactionRoles || {}
+            reactionRoles: guildData.reactionRoles || {},
+            activeGiveaways: guildData.activeGiveaways || {},
+            endedGiveaways: guildData.endedGiveaways || {},
+            closedTickets: guildData.closedTickets || []
           }
         });
       }
@@ -282,6 +307,136 @@ function startWebServer(client) {
         } catch (err) {
           console.error('[Web Interface Panel] Error:', err);
           return sendJson(res, 500, { error: 'Gagal mengirim panel ke Discord: ' + err.message });
+        }
+      }
+
+      // POST /api/guild/:id/ticket/send-panel
+      if (req.method === 'POST' && pathname.match(/^\/api\/guild\/[0-9]+\/ticket\/send-panel$/)) {
+        const guildId = pathname.split('/')[3];
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) return sendJson(res, 404, { error: 'Guild tidak ditemukan' });
+
+        const body = await getRequestBody(req);
+        if (!body.channelId) {
+          return sendJson(res, 400, { error: 'Saluran Discord tujuan wajib dipilih.' });
+        }
+
+        const channel = guild.channels.cache.get(body.channelId);
+        if (!channel || channel.type !== ChannelType.GuildText) {
+          return sendJson(res, 400, { error: 'Saluran tujuan harus berupa Text Channel.' });
+        }
+
+        try {
+          const msg = await sendTicketPanel(channel);
+          return sendJson(res, 200, {
+            success: true,
+            message: `Panel Bantuan Tiket berhasil dikirim ke #${channel.name}!`,
+            messageId: msg.id
+          });
+        } catch (err) {
+          console.error('[Web Ticket Panel] Error:', err);
+          return sendJson(res, 500, { error: 'Gagal mengirim panel tiket: ' + err.message });
+        }
+      }
+
+      // GET /api/guild/:id/ticket/transcripts
+      if (req.method === 'GET' && pathname.match(/^\/api\/guild\/[0-9]+\/ticket\/transcripts$/)) {
+        const guildId = pathname.split('/')[3];
+        const guildData = db.getGuild(guildId);
+        return sendJson(res, 200, { transcripts: guildData.closedTickets || [] });
+      }
+
+      // GET /api/guild/:id/ticket/transcript/:filename
+      if (req.method === 'GET' && pathname.match(/^\/api\/guild\/[0-9]+\/ticket\/transcript\/[a-zA-Z0-9_\-\.]+$/)) {
+        const parts = pathname.split('/');
+        const filename = parts[5];
+        const safeFilename = path.basename(filename);
+        const filePath = path.join(TRANSCRIPTS_DIR, safeFilename);
+
+        if (fs.existsSync(filePath)) {
+          const content = fs.readFileSync(filePath, 'utf-8');
+          const isDownload = parsedUrl.query.download === 'true';
+          if (isDownload) {
+            res.writeHead(200, {
+              'Content-Type': 'text/plain; charset=UTF-8',
+              'Content-Disposition': `attachment; filename="${safeFilename}"`
+            });
+            return res.end(content);
+          }
+          return sendJson(res, 200, { filename: safeFilename, content });
+        } else {
+          return sendJson(res, 404, { error: 'File transkrip tidak ditemukan di server.' });
+        }
+      }
+
+      // POST /api/guild/:id/giveaway/start
+      if (req.method === 'POST' && pathname.match(/^\/api\/guild\/[0-9]+\/giveaway\/start$/)) {
+        const guildId = pathname.split('/')[3];
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) return sendJson(res, 404, { error: 'Guild tidak ditemukan' });
+
+        const body = await getRequestBody(req);
+        const { prize, duration, winnersCount, channelId } = body;
+
+        if (!prize || !duration || !channelId) {
+          return sendJson(res, 400, { error: 'Nama Hadiah, Durasi, dan Saluran Channel wajib diisi.' });
+        }
+
+        const channel = guild.channels.cache.get(channelId);
+        if (!channel || channel.type !== ChannelType.GuildText) {
+          return sendJson(res, 400, { error: 'Saluran harus berupa text channel.' });
+        }
+
+        const durationMs = parseDuration(duration);
+        const count = Math.max(1, parseInt(winnersCount, 10) || 1);
+
+        try {
+          const msg = await startGiveaway(channel, {
+            prize,
+            durationMs,
+            winnersCount: count,
+            hostUser: client.user
+          });
+
+          return sendJson(res, 200, {
+            success: true,
+            message: `Giveaway untuk "${prize}" berhasil dimulai di #${channel.name}!`,
+            messageId: msg.id
+          });
+        } catch (err) {
+          console.error('[Web Giveaway Start] Error:', err);
+          return sendJson(res, 500, { error: 'Gagal memulai giveaway: ' + err.message });
+        }
+      }
+
+      // POST /api/guild/:id/giveaway/end
+      if (req.method === 'POST' && pathname.match(/^\/api\/guild\/[0-9]+\/giveaway\/end$/)) {
+        const guildId = pathname.split('/')[3];
+        const body = await getRequestBody(req);
+        if (!body.messageId) return sendJson(res, 400, { error: 'Message ID giveaway wajib diisi.' });
+
+        try {
+          await endGiveaway(client, guildId, body.messageId);
+          return sendJson(res, 200, { success: true, message: 'Giveaway berhasil diakhiri sekarang!' });
+        } catch (err) {
+          return sendJson(res, 500, { error: 'Gagal mengakhiri giveaway: ' + err.message });
+        }
+      }
+
+      // POST /api/guild/:id/giveaway/reroll
+      if (req.method === 'POST' && pathname.match(/^\/api\/guild\/[0-9]+\/giveaway\/reroll$/)) {
+        const guildId = pathname.split('/')[3];
+        const body = await getRequestBody(req);
+        if (!body.messageId) return sendJson(res, 400, { error: 'Message ID giveaway wajib diisi.' });
+
+        try {
+          const newWinner = await rerollGiveaway(client, guildId, body.messageId);
+          return sendJson(res, 200, {
+            success: true,
+            message: `Pemenang giveaway berhasil di-reroll! Pemenang baru: ID ${newWinner}`
+          });
+        } catch (err) {
+          return sendJson(res, 400, { error: err.message || 'Gagal reroll pemenang.' });
         }
       }
 
@@ -363,7 +518,7 @@ function startWebServer(client) {
 
         db.updateGuild(guildId, data => {
           if (!data.trackedFeeds) data.trackedFeeds = { youtube: [], tiktok: [] };
-          if (!data.trackedFeeds.tiktok) data.trackedFeeds.tiktok = [];
+          if (!data.trackedFeeds.tiktok) data.trackedFeeds = [];
           data.trackedFeeds.tiktok = data.trackedFeeds.tiktok.filter(
             f => (f.username || '').replace(/^@/, '').trim().toLowerCase() !== username.toLowerCase()
           );

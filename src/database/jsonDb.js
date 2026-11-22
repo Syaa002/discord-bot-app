@@ -21,6 +21,8 @@ const defaultGuildData = () => ({
   autoRole: null, // Role otomatis saat member baru join
   temporaryVoiceRooms: {}, // { channelId: { ownerId, trusted: [], blocked: [], waitingRoom: false } }
   activeGiveaways: {}, // { messageId: { prize, endsAt, winnersCount, hostId, participants: [] } }
+  endedGiveaways: {}, // { messageId: { prize, endedAt, winners: [], participants: [] } }
+  closedTickets: [], // [ { id, channelName, creatorTag, category, closedBy, closedAt, filename } ]
   trackedFeeds: {
     youtube: [], // [ { channelId, lastVideoId, alertChannelId } ]
     tiktok: []   // [ { username, lastVideoId, alertChannelId } ]

@@ -44,6 +44,18 @@ function createTicketPanelMessage() {
   return { embeds: [embed], components: [row] };
 }
 
+async function sendTicketPanel(channel) {
+  const payload = createTicketPanelMessage();
+  const msg = await channel.send(payload);
+
+  db.updateGuild(channel.guild.id, data => {
+    data.ticketPanelMessageId = msg.id;
+    data.ticketPanelChannelId = channel.id;
+  });
+
+  return msg;
+}
+
 async function handleTicketInteraction(interaction) {
   const guild = interaction.guild;
   const member = interaction.member;
@@ -96,6 +108,7 @@ async function handleTicketInteraction(interaction) {
         name: channelName,
         type: ChannelType.GuildText,
         parent: parentCategory || null,
+        topic: `Tiket dibuat oleh ${member.user.tag} (${member.id}) | Kategori: ${categoryInfo.label}`,
         permissionOverwrites
       });
 
@@ -144,13 +157,40 @@ async function handleTicketInteraction(interaction) {
     await interaction.reply({ content: '🔒 Menutup tiket dan membuat transkrip dalam 5 detik...' });
 
     try {
+      // Ekstrak info pembuat dan kategori dari topic
+      let creatorTag = 'Member';
+      let categoryName = 'Bantuan Umum';
+      if (channel.topic) {
+        const topicMatch = channel.topic.match(/oleh\s+([^\(]+)\s*\(([^)]+)\)\s*\|\s*Kategori:\s*(.+)/i);
+        if (topicMatch) {
+          creatorTag = topicMatch[1].trim();
+          categoryName = topicMatch[3].trim();
+        }
+      }
+
       // Simpan Transkrip
       const messages = await channel.messages.fetch({ limit: 100 });
       const transcriptLines = messages.reverse().map(m => `[${new Date(m.createdTimestamp).toLocaleString()}] ${m.author.tag}: ${m.cleanContent}`);
       const transcriptText = transcriptLines.join('\n');
 
-      const transcriptPath = path.join(TRANSCRIPTS_DIR, `${channel.name}.txt`);
+      const filename = `${channel.name}.txt`;
+      const transcriptPath = path.join(TRANSCRIPTS_DIR, filename);
       fs.writeFileSync(transcriptPath, transcriptText, 'utf-8');
+
+      // Simpan ke riwayat database
+      db.updateGuild(guild.id, data => {
+        if (!data.closedTickets) data.closedTickets = [];
+        data.closedTickets.unshift({
+          id: channel.name,
+          channelName: channel.name,
+          creatorTag,
+          category: categoryName,
+          closedBy: interaction.user.tag,
+          closedAt: Date.now(),
+          filename
+        });
+        if (data.closedTickets.length > 100) data.closedTickets.pop();
+      });
 
       await sendLog(guild, {
         category: 'Tiket',
@@ -172,5 +212,7 @@ async function handleTicketInteraction(interaction) {
 module.exports = {
   TICKET_TYPES,
   createTicketPanelMessage,
-  handleTicketInteraction
+  sendTicketPanel,
+  handleTicketInteraction,
+  TRANSCRIPTS_DIR
 };

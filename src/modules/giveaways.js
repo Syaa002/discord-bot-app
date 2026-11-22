@@ -25,7 +25,7 @@ function createGiveawayButtons(count = 0) {
 async function startGiveaway(channel, { prize, durationMs, winnersCount, hostUser }) {
   const endsAt = Date.now() + durationMs;
   const embed = new EmbedBuilder()
-    .setColor(COLORS.WARNING)
+    .setColor(COLORS.WARNING || 0xFFB703)
     .setTitle(`🎉 GIVEAWAY: ${prize}`)
     .setDescription(
       `Klik tombol **Ikut** di bawah untuk berpartisipasi!\n\n` +
@@ -40,12 +40,16 @@ async function startGiveaway(channel, { prize, durationMs, winnersCount, hostUse
   const msg = await channel.send({ embeds: [embed], components: [row] });
 
   db.updateGuild(channel.guild.id, data => {
+    if (!data.activeGiveaways) data.activeGiveaways = {};
     data.activeGiveaways[msg.id] = {
+      messageId: msg.id,
       channelId: channel.id,
+      channelName: channel.name,
       prize,
       endsAt,
       winnersCount,
       hostId: hostUser.id,
+      hostTag: hostUser.tag || hostUser.username,
       participants: []
     };
   });
@@ -56,7 +60,7 @@ async function startGiveaway(channel, { prize, durationMs, winnersCount, hostUse
 
 async function endGiveaway(client, guildId, messageId) {
   const guildData = db.getGuild(guildId);
-  const gwData = guildData.activeGiveaways[messageId];
+  const gwData = guildData.activeGiveaways?.[messageId];
   if (!gwData) return;
 
   const guild = client.guilds.cache.get(guildId);
@@ -66,7 +70,6 @@ async function endGiveaway(client, guildId, messageId) {
   if (!channel) return;
 
   const msg = await channel.messages.fetch(messageId).catch(() => null);
-  if (!msg) return;
 
   const participants = gwData.participants || [];
   let winners = [];
@@ -78,17 +81,19 @@ async function endGiveaway(client, guildId, messageId) {
 
   const winnersText = winners.length > 0 ? winners.map(id => `<@${id}>`).join(', ') : 'Tidak ada peserta yang memenuhi syarat.';
 
-  const endedEmbed = new EmbedBuilder()
-    .setColor(COLORS.ERROR)
-    .setTitle(`🎉 GIVEAWAY SELESAI: ${gwData.prize}`)
-    .setDescription(
-      `🏆 **Pemenang**: ${winnersText}\n` +
-      `👑 **Host**: <@${gwData.hostId}>\n` +
-      `👥 **Total Peserta**: ${participants.length}`
-    )
-    .setTimestamp();
+  if (msg) {
+    const endedEmbed = new EmbedBuilder()
+      .setColor(COLORS.ERROR || 0xEF233C)
+      .setTitle(`🎉 GIVEAWAY SELESAI: ${gwData.prize}`)
+      .setDescription(
+        `🏆 **Pemenang**: ${winnersText}\n` +
+        `👑 **Host**: <@${gwData.hostId}>\n` +
+        `👥 **Total Peserta**: ${participants.length}`
+      )
+      .setTimestamp();
 
-  await msg.edit({ embeds: [endedEmbed], components: [] });
+    await msg.edit({ embeds: [endedEmbed], components: [] }).catch(() => {});
+  }
 
   if (winners.length > 0) {
     await channel.send(`🎉 Selamat kepada ${winnersText}! Anda memenangkan **${gwData.prize}**! Hubungi <@${gwData.hostId}> untuk klaim.`);
@@ -96,16 +101,55 @@ async function endGiveaway(client, guildId, messageId) {
     await channel.send(`😢 Giveaway untuk **${gwData.prize}** berakhir tanpa ada peserta.`);
   }
 
+  // Arsipkan ke endedGiveaways
   db.updateGuild(guildId, data => {
-    delete data.activeGiveaways[messageId];
+    if (!data.endedGiveaways) data.endedGiveaways = {};
+    data.endedGiveaways[messageId] = {
+      ...gwData,
+      endedAt: Date.now(),
+      winners
+    };
+    if (data.activeGiveaways) {
+      delete data.activeGiveaways[messageId];
+    }
   });
 
   await sendLog(guild, {
     category: 'Giveaway',
     title: 'Giveaway Selesai',
     description: `Giveaway **${gwData.prize}** selesai. Pemenang: ${winnersText}`,
-    color: COLORS.WARNING
+    color: COLORS.WARNING || 0xFFB703
   });
+}
+
+async function rerollGiveaway(client, guildId, messageId) {
+  const guildData = db.getGuild(guildId);
+  const gwData = guildData.activeGiveaways?.[messageId] || guildData.endedGiveaways?.[messageId];
+  if (!gwData) throw new Error('Data giveaway tidak ditemukan.');
+
+  const guild = client.guilds.cache.get(guildId);
+  if (!guild) throw new Error('Guild tidak ditemukan.');
+
+  const channel = guild.channels.cache.get(gwData.channelId);
+  if (!channel) throw new Error('Saluran Discord giveaway tidak ditemukan.');
+
+  const participants = gwData.participants || [];
+  if (participants.length === 0) {
+    throw new Error('Tidak ada peserta di giveaway ini untuk di-reroll.');
+  }
+
+  // Pilih pemenang acak baru
+  const newWinner = participants[Math.floor(Math.random() * participants.length)];
+
+  await channel.send(`🎲 **Reroll Pemenang Giveaway [${gwData.prize}]!**\nSelamat kepada <@${newWinner}>! Anda adalah pemenang baru terpilih! 🎉`);
+
+  db.updateGuild(guildId, data => {
+    if (data.endedGiveaways && data.endedGiveaways[messageId]) {
+      data.endedGiveaways[messageId].winners = [newWinner];
+    }
+  });
+
+  return newWinner;
 }
 
 async function handleGiveawayInteraction(interaction) {
@@ -114,7 +158,7 @@ async function handleGiveawayInteraction(interaction) {
   if (!customId.startsWith('gw_')) return;
 
   const guildData = db.getGuild(guild.id);
-  const gwData = guildData.activeGiveaways[message.id];
+  const gwData = guildData.activeGiveaways?.[message.id];
 
   if (!gwData) {
     return interaction.reply({ content: '❌ Giveaway ini telah berakhir atau tidak ditemukan.', ephemeral: true });
@@ -150,7 +194,9 @@ async function handleGiveawayInteraction(interaction) {
 }
 
 module.exports = {
+  createGiveawayButtons,
   startGiveaway,
   endGiveaway,
+  rerollGiveaway,
   handleGiveawayInteraction
 };
