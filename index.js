@@ -95,10 +95,31 @@ process.on('uncaughtException', (err, origin) => {
 });
 
 // ===================================================================
-// START ZERO TWO WEB DASHBOARD
+// START ZERO TWO WEB DASHBOARD (KHUSUS LOKAL / PRIVAT)
 // ===================================================================
-const { startWebServer } = require('./src/web/server');
-startWebServer(client);
+// Web dashboard bersifat privat untuk pemilik bot.
+// Di platform bot hosting (seperti Bot-Hosting.net, Pterodactyl, container cloud),
+// web server otomatis dinonaktifkan agar tidak terekspos ke publik dan menghemat kuota hosting.
+const isCloudHosting = Boolean(
+  process.env.P_SERVER_UUID ||
+  process.env.P_SERVER_LOCATION ||
+  process.env.BOT_HOSTING ||
+  process.env.SERVER_MEMORY ||
+  process.env.DISABLE_DASHBOARD === 'true'
+);
+
+// Di bot hosting (seperti Bot-Hosting.net / Pterodactyl / cloud), dashboard dinonaktifkan
+// secara default karena web dashboard bersifat privat hanya untuk komputer pemilik bot.
+const isDashboardEnabled = !isCloudHosting && process.env.ENABLE_DASHBOARD !== 'false';
+
+if (isDashboardEnabled) {
+  try {
+    const { startWebServer } = require('./src/web/server');
+    startWebServer(client);
+  } catch (err) {
+    console.error('[WebDashboard] Gagal memulai server web:', err);
+  }
+}
 
 // ===================================================================
 // LOGIN BOT
