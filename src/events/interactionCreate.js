@@ -106,7 +106,7 @@ module.exports = {
       } else if (selected === 'help_panels') {
         embed.setTitle('🎛️ Panel & Sistem Interaktif')
           .setDescription(
-            '• **Temporary Voice Room** (`!voicepanel setup`): Saluran suara dinamis dengan 18 tombol kontrol.\n' +
+            '• **Temporary Voice Room** (`!voicepanel setup` / `!voice`): TempVoice Interface minimalis & kontrol ruangan.\n' +
             '• **Pusat Tiket Bantuan** (`!ticketpanel`): 5 jenis kategori bantuan & auto-transkrip.\n' +
             '• **Giveaway System** (`!giveaway`): Giveaway interaktif dengan tombol Enter/Leave.\n' +
             '• **Reaction Role** (`!reactionrole`): Panel pilih role via tombol klik.'
@@ -153,7 +153,7 @@ module.exports = {
     }
 
     // ===================================================================
-    // 4. VOICE CONTROLS (18 TOMBOL, MODAL & SELECT MENU)
+    // 4. VOICE CONTROLS (TEMPVOICE INTERFACE, MODAL & SELECT MENU)
     // ===================================================================
     if (interaction.customId.startsWith('vc_')) {
       if (interaction.isModalSubmit() || interaction.isUserSelectMenu()) {

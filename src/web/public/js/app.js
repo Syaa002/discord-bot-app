@@ -394,7 +394,7 @@ document.getElementById('btnSendVoiceInterface')?.addEventListener('click', asyn
   if (!channelId) return showToast('Pilih saluran teks tujuan terlebih dahulu!', true);
 
   try {
-    showToast('Sedang mengirim panel 18 tombol ke Discord...');
+    showToast('Sedang mengirim TempVoice Interface ke Discord...');
     const res = await fetch(`/api/guild/${currentGuildId}/voice/send-interface`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -992,7 +992,7 @@ document.getElementById('btnSaveTicketConfig')?.addEventListener('click', async 
 // ===================================================================
 const BANNER_FEATURES = [
   { key: 'help', name: '📖 Menu Help & Panduan', desc: 'Embed !help & slash /help' },
-  { key: 'voice', name: '🔊 Temporary Voice Rooms', desc: 'Panel kontrol room (18 tombol) & room chat' },
+  { key: 'voice', name: '🔊 Temporary Voice Rooms', desc: 'TempVoice Interface panel & room chat' },
   { key: 'ticket', name: '🎫 Sistem Tiket Bantuan', desc: 'Panel pembuka tiket & welcome embed channel tiket' },
   { key: 'giveaway', name: '🎉 Giveaway Interaktif', desc: 'Embed mulai giveaway & pengumuman pemenang' },
   { key: 'reactionrole', name: '🎭 Reaction Role / Button Role', desc: 'Panel tombol pemilihan role otomatis' },

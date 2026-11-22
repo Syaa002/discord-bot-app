@@ -31,7 +31,7 @@ module.exports = {
         { name: '🛡️ Moderasi & Keamanan', value: 'Ban, Kick, Timeout, Warn, Delete/Purge, Lockdown, dll.' },
         { name: 'ℹ️ Informasi & Server', value: 'Serverinfo, Userinfo, Snipe, Avatar, Ping, Uptime, dll.' },
         { name: '🧰 Komunitas & Interaksi', value: 'Poll, Quote, Suggest, Emoji, GIF, Fact, Thread.' },
-        { name: '🎛️ Panel & Sistem', value: 'Temporary Voice (18 Tombol), Tiket, Giveaway, Reaction Role.' },
+        { name: '🎛️ Panel & Sistem', value: 'Temporary Voice (TempVoice Interface), Tiket, Giveaway, Reaction Role.' },
         { name: '⚙️ Developer & Admin', value: 'Config, Sync, Backup, Reload, Webhook, DB Ping, dll.' }
       )
       .setFooter({ text: 'Gunakan !help <perintah> atau pilih kategori di bawah.' });
@@ -66,7 +66,7 @@ module.exports = {
         { name: '🛡️ Moderasi & Keamanan', value: 'Ban, Kick, Timeout, Warn, Delete/Purge, Lockdown, dll.' },
         { name: 'ℹ️ Informasi & Server', value: 'Serverinfo, Userinfo, Snipe, Avatar, Ping, Uptime, dll.' },
         { name: '🧰 Komunitas & Interaksi', value: 'Poll, Quote, Suggest, Emoji, GIF, Fact, Thread.' },
-        { name: '🎛️ Panel & Sistem', value: 'Temporary Voice (18 Tombol), Tiket, Giveaway, Reaction Role.' },
+        { name: '🎛️ Panel & Sistem', value: 'Temporary Voice (TempVoice Interface), Tiket, Giveaway, Reaction Role.' },
         { name: '⚙️ Developer & Admin', value: 'Config, Sync, Backup, Reload, Webhook, DB Ping, dll.' }
       );
 

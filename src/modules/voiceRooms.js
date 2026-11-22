@@ -13,64 +13,73 @@ const {
 const db = require('../database/jsonDb');
 const { COLORS, applyBanner } = require('../utils/embeds');
 
-// Helper untuk membuat panel 18 tombol
+// Helper untuk membuat panel kontrol suara minimalis (11 tombol ikon)
 function createVoiceControlRows() {
   const row1 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId('vc_limit').setLabel('LIMIT').setStyle(ButtonStyle.Secondary).setEmoji('👥'),
-    new ButtonBuilder().setCustomId('vc_chat').setLabel('CHAT').setStyle(ButtonStyle.Secondary).setEmoji('💬'),
-    new ButtonBuilder().setCustomId('vc_name').setLabel('NAME').setStyle(ButtonStyle.Secondary).setEmoji('🏷️'),
-    new ButtonBuilder().setCustomId('vc_privacy').setLabel('PRIVACY').setStyle(ButtonStyle.Secondary).setEmoji('🔒'),
-    new ButtonBuilder().setCustomId('vc_bitrate').setLabel('BITRATE').setStyle(ButtonStyle.Secondary).setEmoji('📶')
+    new ButtonBuilder().setCustomId('vc_limit').setStyle(ButtonStyle.Secondary).setEmoji('👥'),
+    new ButtonBuilder().setCustomId('vc_chat').setStyle(ButtonStyle.Secondary).setEmoji('💬'),
+    new ButtonBuilder().setCustomId('vc_name').setStyle(ButtonStyle.Secondary).setEmoji('🏷️'),
+    new ButtonBuilder().setCustomId('vc_privacy').setStyle(ButtonStyle.Danger).setEmoji('🔒'),
+    new ButtonBuilder().setCustomId('vc_bitrate').setStyle(ButtonStyle.Secondary).setEmoji('📶')
   );
 
   const row2 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId('vc_kick').setLabel('KICK').setStyle(ButtonStyle.Secondary).setEmoji('📞'),
-    new ButtonBuilder().setCustomId('vc_trust').setLabel('TRUST').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
-    new ButtonBuilder().setCustomId('vc_untrust').setLabel('UNTRUST').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
-    new ButtonBuilder().setCustomId('vc_block').setLabel('BLOCK').setStyle(ButtonStyle.Secondary).setEmoji('🚫'),
-    new ButtonBuilder().setCustomId('vc_unblock').setLabel('UNBLOCK').setStyle(ButtonStyle.Secondary).setEmoji('🔓')
+    new ButtonBuilder().setCustomId('vc_kick').setStyle(ButtonStyle.Secondary).setEmoji('📞'),
+    new ButtonBuilder().setCustomId('vc_trust').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
+    new ButtonBuilder().setCustomId('vc_untrust').setStyle(ButtonStyle.Secondary).setEmoji('👤'),
+    new ButtonBuilder().setCustomId('vc_block').setStyle(ButtonStyle.Secondary).setEmoji('🚫'),
+    new ButtonBuilder().setCustomId('vc_unblock').setStyle(ButtonStyle.Secondary).setEmoji('🔓')
   );
 
   const row3 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId('vc_reset').setLabel('RESET').setStyle(ButtonStyle.Secondary).setEmoji('⚙️'),
-    new ButtonBuilder().setCustomId('vc_waiting_room').setLabel('WAITING ROOM').setStyle(ButtonStyle.Secondary).setEmoji('⏳'),
-    new ButtonBuilder().setCustomId('vc_invite').setLabel('INVITE').setStyle(ButtonStyle.Secondary).setEmoji('📞'),
-    new ButtonBuilder().setCustomId('vc_region').setLabel('REGION').setStyle(ButtonStyle.Secondary).setEmoji('🌐'),
-    new ButtonBuilder().setCustomId('vc_claim').setLabel('CLAIM').setStyle(ButtonStyle.Secondary).setEmoji('👑')
+    new ButtonBuilder().setCustomId('vc_reset').setStyle(ButtonStyle.Secondary).setEmoji('⚙️')
   );
 
-  const row4 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId('vc_transfer').setLabel('TRANSFER').setStyle(ButtonStyle.Secondary).setEmoji('🔄'),
-    new ButtonBuilder().setCustomId('vc_delete').setLabel('DELETE').setStyle(ButtonStyle.Danger).setEmoji('🗑️'),
-    new ButtonBuilder().setCustomId('vc_info').setLabel('INFO').setStyle(ButtonStyle.Primary).setEmoji('ℹ️')
-  );
+  return [row1, row2, row3];
+}
 
-  return [row1, row2, row3, row4];
+// Helper teks embed TempVoice Interface minimalis
+function buildInterfaceEmbed(guildId) {
+  const embed = new EmbedBuilder()
+    .setColor(0xEF233C)
+    .setTitle('TempVoice Interface')
+    .setDescription(
+      'This interface can be used to manage temporary voice channels.\n' +
+      'More options are available with /voice commands.\n\n' +
+      '`👥 LIMIT` `💬 CHAT` `🏷️ NAME` `🔒 PRIVACY` `📶 BITRATE`\n' +
+      '`📞 KICK` `👤 TRUST` `👤 UNTRUST` `🚫 BLOCK` `🔓 UNBLOCK`\n' +
+      '`⚙️ RESET`\n\n' +
+      'Press the buttons below to use the interface'
+    );
+
+  applyBanner(embed, guildId, 'voice');
+  return embed;
 }
 
 // Mengirimkan Panel Interface Permanen ke Saluran Teks (seperti #interface)
 async function sendInterfacePanel(textChannel) {
-  const embed = new EmbedBuilder()
-    .setColor(COLORS.PRIMARY)
-    .setTitle('🔊 TempVoice Interface • Vespera')
-    .setDescription(
-      'Panel ini digunakan untuk mengatur dan mengontrol temporary voice room Anda secara langsung.\n' +
-      'Gunakan tombol-tombol di bawah ini untuk mengubah pengaturan ruangan suara Anda.\n\n' +
-      '👉 **Penting:** Pastikan Anda sedang bergabung di dalam temporary voice room Anda saat menekan tombol.'
-    )
-    .addFields(
-      { name: '👥 Limit / Chat / Name', value: 'Batas member, chat text, ganti nama', inline: true },
-      { name: '🔒 Privacy / Bitrate', value: 'Kunci/buka room, sesuaikan bitrate', inline: true },
-      { name: '📞 Kick / Trust / Block', value: 'Keluarkan, trusted, atau blokir', inline: true },
-      { name: '⏳ Waiting / Invite / Reset', value: 'Ruang tunggu, undang teman, reset default', inline: true },
-      { name: '👑 Claim / Transfer / Delete', value: 'Klaim room, serahkan owner, atau hapus room', inline: true }
-    )
-    .setFooter({ text: 'TempVoice System • Vespera Core' });
-
-  applyBanner(embed, textChannel.guild.id, 'voice');
-
+  const embed = buildInterfaceEmbed(textChannel.guild.id);
   const rows = createVoiceControlRows();
-  const msg = await textChannel.send({ embeds: [embed], components: rows });
+
+  let msg;
+  const guildData = db.getGuild(textChannel.guild.id);
+  const existingMsgId = guildData.voiceInterfaceMessageId;
+  const existingChannelId = guildData.voiceInterfaceChannel;
+
+  // Coba perbarui pesan yang sudah ada jika berada di channel yang sama
+  if (existingMsgId && existingChannelId === textChannel.id) {
+    try {
+      const oldMsg = await textChannel.messages.fetch(existingMsgId).catch(() => null);
+      if (oldMsg) {
+        msg = await oldMsg.edit({ embeds: [embed], components: rows });
+      }
+    } catch (_) {}
+  }
+
+  // Jika belum ada atau pesan lama terhapus, kirim pesan baru
+  if (!msg) {
+    msg = await textChannel.send({ embeds: [embed], components: rows });
+  }
 
   db.updateGuild(textChannel.guild.id, data => {
     data.voiceInterfaceChannel = textChannel.id;
@@ -78,6 +87,40 @@ async function sendInterfacePanel(textChannel) {
   });
 
   return msg;
+}
+
+// Sinkronisasi/perbarui otomatis panel interface di semua server saat bot ready
+async function refreshAllInterfacePanels(client) {
+  for (const [guildId, guild] of client.guilds.cache) {
+    const guildData = db.getGuild(guildId);
+    if (guildData && guildData.voiceInterfaceChannel) {
+      try {
+        const channel = await guild.channels.fetch(guildData.voiceInterfaceChannel).catch(() => null);
+        if (channel && channel.isTextBased()) {
+          const embed = buildInterfaceEmbed(guildId);
+          const rows = createVoiceControlRows();
+
+          let oldMsg = null;
+          if (guildData.voiceInterfaceMessageId) {
+            oldMsg = await channel.messages.fetch(guildData.voiceInterfaceMessageId).catch(() => null);
+          }
+
+          if (oldMsg) {
+            await oldMsg.edit({ embeds: [embed], components: rows });
+            console.log(`[VoiceRooms] Berhasil memperbarui panel interface ke minimalis di #${channel.name} (${guild.name})`);
+          } else {
+            const newMsg = await channel.send({ embeds: [embed], components: rows });
+            db.updateGuild(guildId, data => {
+              data.voiceInterfaceMessageId = newMsg.id;
+            });
+            console.log(`[VoiceRooms] Berhasil mengirimkan panel interface minimalis baru ke #${channel.name} (${guild.name})`);
+          }
+        }
+      } catch (err) {
+        console.error(`[VoiceRooms] Gagal auto-update/send panel interface di guild ${guildId}:`, err.message);
+      }
+    }
+  }
 }
 
 async function handleVoiceState(oldState, newState) {
@@ -552,6 +595,7 @@ async function handleVoiceModalAndSelect(interaction) {
 module.exports = {
   createVoiceControlRows,
   sendInterfacePanel,
+  refreshAllInterfacePanels,
   handleVoiceState,
   handleVoiceInteraction,
   handleVoiceModalAndSelect

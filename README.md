@@ -59,12 +59,12 @@ Bot Discord serbaguna dengan arsitektur modular yang mendukung interaksi melalui
 ---
 
 ### 5. 🎛️ Panel & Sistem Interaktif
-* **🔊 Temporary Voice Rooms (18 Tombol Kontrol)**:
+* **🔊 Temporary Voice Rooms (TempVoice Interface)**:
   * Ruangan suara pribadi yang dibuat otomatis saat member bergabung ke saluran *Join to Create* (`!voicepanel setup`).
-  * **Panel Pengendali di Saluran Teks (`#interface`)**: Sematkan 18 tombol kontrol permanen ke saluran teks seperti `#✨ | interface` via command `!voicepanel interface [#channel]` atau langsung dari Web Dashboard. Member yang berada di voice room dapat langsung mengontrol room mereka dari tombol tersebut.
-  * **Pengaturan Ruangan**: `LIMIT`, `CHAT`, `NAME`, `PRIVACY`, `BITRATE`, `REGION`, `RESET`, `INFO`.
-  * **Izin & Akses**: `KICK`, `TRUST`, `UNTRUST`, `BLOCK`, `UNBLOCK`, `INVITE`, `WAITING ROOM`.
-  * **Kepemilikan Ruangan**: `CLAIM`, `TRANSFER`, `DELETE` *(Hanya pemilik room atau Admin yang dapat menghapus)*.
+  * **Panel Pengendali Minimalis di Saluran Teks (`#interface`)**: Sematkan TempVoice Interface minimalis dengan 11 tombol ikon interaktif dan dukungan perintah `/voice` ke saluran teks seperti `#✨ | interface` via command `!voicepanel interface [#channel]` atau langsung dari Web Dashboard. Member yang berada di voice room dapat langsung mengontrol room mereka dari tombol tersebut.
+  * **Pengaturan Ruangan**: `LIMIT`, `CHAT`, `NAME`, `PRIVACY` (Lock/Unlock), `BITRATE`, `RESET`.
+  * **Izin & Akses**: `KICK`, `TRUST`, `UNTRUST`, `BLOCK`, `UNBLOCK`.
+  * **Opsi Perintah Tambahan (`/voice`)**: `/voice claim`, `/voice transfer`, `/voice info`, `/voice invite`, `/voice waiting`, `/voice delete`.
   * **Auto-Delete**: Otomatis terhapus saat room kosong (0 member).
 * **🎭 Reaction Role & Auto-Role**:
   * **Panel Tombol Reaction Role**: Buat panel tombol interaktif via Web Dashboard atau command `!reactionrole <role> <label> <deskripsi>`. Member cukup mengklik tombol untuk mengambil/melepas role secara mandiri.
@@ -103,7 +103,7 @@ Bot Discord serbaguna dengan arsitektur modular yang mendukung interaksi melalui
 * **Desain Eksklusif Vespera System**: Mengusung estetika palet warna rose-crimson elegan (`#FF758F`, `#EF233C`), aksen toska cyan (`#00F5D4`), dark slate modern, dan badge `CORE OS`.
 * **Ringkasan Sistem Real-Time**: Pemantauan langsung status gateway WebSocket ping, jumlah server & member, uptime, serta pengontrol status aktivitas bot (*Presence Controller*).
 * **Manajemen Auto-Mod Interaktif**: Tombol toggle untuk mengaktifkan/menonaktifkan Anti-Phishing, Anti-Mass Mention, dan Anti-Invite secara visual.
-* **Visualisasi & Kontrol Temporary Voice**: Pengaturan saluran *Join to Create*, pengiriman panel 18 tombol langsung ke saluran teks seperti `#interface`, serta pratinjau matriks tombol interaktif.
+* **Visualisasi & Kontrol Temporary Voice**: Pengaturan saluran *Join to Create*, pengiriman TempVoice Interface minimalis langsung ke saluran teks seperti `#interface`, serta pratinjau matriks tombol interaktif.
 * **Manajemen Feed Notifikasi YouTube & TikTok**: Tambah dan hapus ID channel YouTube dan akun TikTok yang dipantau langsung dari dashboard.
 * **Pembuat Reaction Role & Auto-Role**: Pembuat panel Reaction Role (tombol interaktif, warna Discord, emoji) serta manajemen Auto-Role terperinci (user & bot).
 * **Kustomisasi Banner & Disable Command**: Pengaturan banner embed global dan per-fitur dengan live preview serta manajemen pengaktifan/penonaktifan perintah per-server.

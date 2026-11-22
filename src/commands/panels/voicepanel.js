@@ -5,7 +5,7 @@ const { sendInterfacePanel } = require('../../modules/voiceRooms');
 
 module.exports = {
   name: 'voicepanel',
-  description: 'Menyiapkan Temporary Voice Rooms dan mengirim Panel Interaktif 18 Tombol ke saluran teks',
+  description: 'Menyiapkan Temporary Voice Rooms dan mengirim TempVoice Interface minimalis ke saluran teks',
   category: 'panels',
   usage: '!voicepanel setup | !voicepanel interface [#channel]',
   aliases: ['setupvoice', 'voiceinterface'],
@@ -13,14 +13,14 @@ module.exports = {
   botPermissions: [PermissionFlagsBits.ManageChannels, PermissionFlagsBits.SendMessages],
   slashData: new SlashCommandBuilder()
     .setName('voicepanel')
-    .setDescription('Kelola sistem Temporary Voice & Interface 18 Tombol')
+    .setDescription('Kelola sistem Temporary Voice & TempVoice Interface')
     .addSubcommand(sub =>
       sub.setName('setup')
         .setDescription('Buat kategori dan saluran Join to Create otomatis')
     )
     .addSubcommand(sub =>
       sub.setName('interface')
-        .setDescription('Kirim panel kontrol 18 tombol permanen ke saluran teks (seperti #interface)')
+        .setDescription('Kirim panel kontrol TempVoice Interface permanen ke saluran teks (seperti #interface)')
         .addChannelOption(opt =>
           opt.setName('channel')
             .setDescription('Saluran teks tujuan (kosongkan untuk saluran saat ini)')
@@ -48,7 +48,7 @@ module.exports = {
           embeds: [
             successEmbed(
               'Panel Voice Interface Terkirim!',
-              `Panel pengendali 18 tombol berhasil disematkan ke saluran ${targetChannel}.\n` +
+              `TempVoice Interface berhasil disematkan ke saluran ${targetChannel}.\n` +
               'Member yang sedang berada di temporary voice room mereka dapat langsung menekan tombol-tombol tersebut untuk mengontrol ruangan!'
             )
           ]
@@ -82,7 +82,7 @@ module.exports = {
             'Voice System Siap!',
             `Kategori dan saluran ${joinChannel} berhasil dibuat!\n\n` +
             '• Member yang join otomatis dibuatkan temporary room.\n' +
-            '• Untuk menyematkan panel kontrol 18 tombol permanen ke saluran teks (seperti `#interface`), jalankan: `!voicepanel interface [#channel]`'
+            '• Untuk menyematkan TempVoice Interface permanen ke saluran teks (seperti `#interface`), jalankan: `!voicepanel interface [#channel]`'
           )
         ]
       });
@@ -103,7 +103,7 @@ module.exports = {
           embeds: [
             successEmbed(
               'Panel Voice Interface Terkirim!',
-              `Panel pengendali 18 tombol berhasil disematkan ke ${targetChannel}.\n` +
+              `TempVoice Interface berhasil disematkan ke ${targetChannel}.\n` +
               'Member dapat mengontrol ruangan suaranya langsung dari tombol tersebut.'
             )
           ],
