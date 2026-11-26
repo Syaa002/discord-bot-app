@@ -95,22 +95,21 @@ process.on('uncaughtException', (err, origin) => {
 });
 
 // ===================================================================
-// START VESPERA WEB DASHBOARD (KHUSUS LOKAL / PRIVAT)
+// START VESPERA WEB DASHBOARD
 // ===================================================================
-// Web dashboard bersifat privat untuk pemilik bot.
-// Di platform bot hosting (seperti Bot-Hosting.net, Pterodactyl, container cloud),
-// web server otomatis dinonaktifkan agar tidak terekspos ke publik dan menghemat kuota hosting.
+// Secara default di cloud bot hosting, jika tidak ada konfigurasi khusus, dashboard dinonaktifkan
+// untuk menghemat kuota. Namun jika ENABLE_DASHBOARD='true', dashboard akan selalu aktif.
+const isExplicitEnabled = process.env.ENABLE_DASHBOARD === 'true';
+const isExplicitDisabled = process.env.ENABLE_DASHBOARD === 'false' || process.env.DISABLE_DASHBOARD === 'true';
+
 const isCloudHosting = Boolean(
   process.env.P_SERVER_UUID ||
   process.env.P_SERVER_LOCATION ||
   process.env.BOT_HOSTING ||
-  process.env.SERVER_MEMORY ||
-  process.env.DISABLE_DASHBOARD === 'true'
+  process.env.SERVER_MEMORY
 );
 
-// Di bot hosting (seperti Bot-Hosting.net / Pterodactyl / cloud), dashboard dinonaktifkan
-// secara default karena web dashboard bersifat privat hanya untuk komputer pemilik bot.
-const isDashboardEnabled = !isCloudHosting && process.env.ENABLE_DASHBOARD !== 'false';
+const isDashboardEnabled = isExplicitEnabled || (!isExplicitDisabled && !isCloudHosting);
 
 if (isDashboardEnabled) {
   try {

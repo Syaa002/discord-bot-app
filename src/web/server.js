@@ -164,7 +164,7 @@ function parseDuration(str) {
 }
 
 function startWebServer(client) {
-  const PORT = parseInt(process.env.DASHBOARD_PORT, 10) || 3000;
+  const PORT = parseInt(process.env.PORT, 10) || parseInt(process.env.DASHBOARD_PORT, 10) || 3000;
   const LOCALHOST_ONLY = process.env.DASHBOARD_LOCALHOST_ONLY === 'true';
 
   const server = http.createServer(async (req, res) => {
@@ -931,9 +931,11 @@ function startWebServer(client) {
   });
 
   server.listen(PORT, '0.0.0.0', () => {
-    console.log(`✨ Web Dashboard Vespera aktif di: http://localhost:${PORT}`);
+    console.log(`✨ Web Dashboard Vespera aktif di port: ${PORT}`);
     if (LOCALHOST_ONLY) {
       console.log('🔒 Keamanan: Dashboard hanya dapat diakses melalui perangkat komputer ini (Localhost Only).');
+    } else {
+      console.log('🌐 Dashboard aktif dan siap menerima koneksi luar/cloud.');
     }
   });
 
