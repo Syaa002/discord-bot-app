@@ -934,19 +934,30 @@ input:checked + .slider:before {
 }
 
 @media (max-width: 768px) {
+  /* Tombol Menu Mobile */
   .hamburger-btn {
     display: flex;
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 22px;
+    padding: 4px;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
   }
 
+  /* Drawer Sidebar Mobile */
   .sidebar {
     position: fixed;
-    left: -280px;
+    left: -290px;
     top: 0;
     bottom: 0;
-    width: 260px;
+    width: 270px;
     z-index: 1000;
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 10px 0 35px rgba(0, 0, 0, 0.85);
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
   }
 
   .sidebar.open {
@@ -957,7 +968,7 @@ input:checked + .slider:before {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(4px);
     z-index: 999;
   }
@@ -966,24 +977,206 @@ input:checked + .slider:before {
     display: block;
   }
 
+  /* Topbar Responsif */
   .topbar {
-    padding: 12px 16px;
+    padding: 10px 14px;
+    gap: 8px;
+    position: sticky;
+    top: 0;
   }
 
+  .topbar-left {
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .topbar-left label {
+    display: none; /* Sembunyikan label 'PILIH SERVER:' di layar HP agar muat */
+  }
+
+  .server-select {
+    max-width: 140px;
+    padding: 6px 8px;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .topbar-right {
+    gap: 8px;
+  }
+
+  .bot-status-pill {
+    display: none; /* Sembunyikan pill status di layar kecil agar tidak sempit */
+  }
+
+  .btn-logout {
+    padding: 6px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  /* Konten & Kartu */
   .content-body {
-    padding: 16px;
+    padding: 12px 10px;
   }
 
+  .card {
+    padding: 16px 12px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .card-header .zt-badge {
+    align-self: flex-start;
+  }
+
+  .card-title {
+    font-size: 16px;
+  }
+
+  /* Grid Statistik (2 Kolom di HP) */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .stat-card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .stat-title {
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 18px;
+  }
+
+  /* Sentuhan Ramah Mobile & Anti Auto-Zoom Safari */
+  .form-input, .server-select, select, input, textarea {
+    font-size: 16px !important; /* Mencegah auto-zoom di browser iOS/Safari */
+  }
+
+  .btn-zt-primary, .btn-file-select, .btn-logout, .btn-danger, .hamburger-btn {
+    min-height: 42px;
+    touch-action: manipulation;
+  }
+
+  /* Form Presence Controller Stack Vertikal */
+  #presenceForm {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  #presenceForm select,
+  #presenceForm input,
+  #presenceForm button {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: none !important;
+  }
+
+  /* Semua Grid Inline Otomatis Jadi 1 Kolom di Layar Sempit */
+  div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Discord TempVoice Interface Matrix Tombol */
+  .discord-embed-box, .discord-action-rows {
+    margin-left: 0 !important;
+  }
+
+  .discord-button-row {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .discord-button-row.row-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    max-width: 100% !important;
+  }
+
+  .btn-discord-action {
+    font-size: 11px !important;
+    padding: 8px 4px !important;
+    min-height: 38px;
+  }
+
+  .discord-embed-box {
+    padding: 12px !important;
+  }
+
+  .discord-avatar-col {
+    display: none !important;
+  }
+
+  /* Feature Banners & Inputs */
+  .feature-input-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .feature-input-row .form-input,
+  .feature-input-row button {
+    width: 100% !important;
+  }
+
+  /* Modal Pop-up */
+  .zt-modal {
+    padding: 10px;
+  }
+
+  .zt-modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92vh !important;
+    border-radius: 12px !important;
+  }
+
+  .zt-modal-header {
+    padding: 14px 16px;
+  }
+
+  .zt-modal-body {
+    padding: 14px;
+  }
+
+  /* Halaman Login di HP */
+  .login-container {
+    padding: 14px;
+  }
+
+  .login-card {
+    padding: 30px 18px;
+    border-radius: 14px;
+  }
+
+  .login-title {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 380px) {
   .stats-grid {
     grid-template-columns: 1fr;
   }
 
-  .topbar-right {
-    gap: 10px;
-  }
-
-  .bot-status-pill {
-    display: none; /* Sembunyikan pill status di layar sangat kecil agar tidak sempit */
+  .server-select {
+    max-width: 110px;
   }
 }
 
