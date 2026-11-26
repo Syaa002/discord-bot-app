@@ -164,7 +164,8 @@ function parseDuration(str) {
 }
 
 function startWebServer(client) {
-  const PORT = parseInt(process.env.PORT, 10) || parseInt(process.env.DASHBOARD_PORT, 10) || 3000;
+  // Prioritaskan SERVER_PORT (Bot-Hosting / Pterodactyl) atau PORT (cloud) sebelum fallback ke DASHBOARD_PORT / 3000
+  const PORT = parseInt(process.env.SERVER_PORT, 10) || parseInt(process.env.PORT, 10) || parseInt(process.env.DASHBOARD_PORT, 10) || 3000;
   const LOCALHOST_ONLY = process.env.DASHBOARD_LOCALHOST_ONLY === 'true';
 
   const server = http.createServer(async (req, res) => {
